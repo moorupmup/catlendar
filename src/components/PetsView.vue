@@ -221,7 +221,7 @@ function getPetTypeLabel(type: PetType): string {
     </div>
 
     <!-- Scrollable Pets Cards Feed -->
-    <div class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 overscroll-contain">
+    <div class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 overscroll-contain pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div class="max-w-lg mx-auto space-y-3">
         <!-- Empty State -->
         <div

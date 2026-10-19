@@ -325,7 +325,7 @@ defineExpose({
 
 <template>
   <div
-    class="flex-1 overflow-y-auto overscroll-contain scroll-smooth px-2 sm:px-4 py-3 relative pb-32"
+    class="flex-1 overflow-y-auto overscroll-contain scroll-smooth px-2 sm:px-4 py-3 relative pb-[calc(8rem+env(safe-area-inset-bottom,0px))]"
     @click="closeTooltip"
     @scroll.passive="closeTooltip"
   >
@@ -565,7 +565,7 @@ defineExpose({
     >
       <div
         v-if="bookingsStore.selectionStart"
-        class="fixed bottom-6 inset-x-4 max-w-md mx-auto z-30 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-cute-lg border border-cat-200 flex items-center justify-between gap-3"
+        class="fixed bottom-[calc(4.5rem+max(0.6rem,env(safe-area-inset-bottom,0px)))] inset-x-3 sm:inset-x-4 max-w-md mx-auto z-30 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-cute-lg border border-cat-200 flex items-center justify-between gap-3"
       >
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-lg bg-cat-100 flex items-center justify-center text-cat-600">

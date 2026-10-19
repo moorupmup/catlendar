@@ -13,6 +13,7 @@ import PetModal from './components/PetModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import UpdateModal from './components/UpdateModal.vue';
 import { useUpdaterStore } from './stores/updater';
+import { useBookingsStore } from './stores/bookings';
 import { Plus } from 'lucide-vue-next';
 
 const activeTab = ref<'calendar' | 'history' | 'pets'>('calendar');
@@ -30,6 +31,7 @@ const isPetsOpen = ref(false);
 const isSettingsOpen = ref(false);
 
 const updaterStore = useUpdaterStore();
+const bookingsStore = useBookingsStore();
 
 const showExitPrompt = ref(false);
 let exitPromptTimeout: any = null;
@@ -200,14 +202,23 @@ onUnmounted(() => {
     </main>
 
     <!-- Floating Action Button (FAB) to create booking manually (on Calendar & History tabs) -->
-    <button
-      v-if="activeTab !== 'pets'"
-      @click="openManualCreate"
-      class="fixed bottom-20 right-5 sm:right-8 z-20 w-12 h-12 rounded-xl bg-gradient-to-tr from-cat-500 to-cat-400 text-white shadow-cute-lg hover:shadow-xl active:scale-90 transition-all flex items-center justify-center border-2 border-white"
-      title="Новая передержка"
+    <transition
+      enter-active-class="transition duration-200 ease-out transform"
+      enter-from-class="opacity-0 scale-75"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150 ease-in transform"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-75"
     >
-      <Plus class="w-6 h-6 stroke-[2.5]" />
-    </button>
+      <button
+        v-if="activeTab !== 'pets' && !bookingsStore.selectionStart"
+        @click="openManualCreate"
+        class="fixed bottom-[calc(4.5rem+max(0.6rem,env(safe-area-inset-bottom,0px)))] right-4 sm:right-6 z-30 w-12 h-12 rounded-xl bg-gradient-to-tr from-cat-500 to-cat-400 text-white shadow-cute-lg hover:shadow-xl active:scale-90 transition-all flex items-center justify-center border-2 border-white"
+        title="Новая передержка"
+      >
+        <Plus class="w-6 h-6 stroke-[2.5]" />
+      </button>
+    </transition>
 
     <!-- Bottom Navigation Bar (Calendar / History / Pets) -->
     <BottomNav v-model:active-tab="activeTab" />
@@ -253,7 +264,7 @@ onUnmounted(() => {
     >
       <div
         v-if="showExitPrompt"
-        class="fixed bottom-24 inset-x-0 mx-auto w-fit z-50 px-4 py-2 bg-slate-900/90 text-white text-xs font-bold rounded-full shadow-cute-lg backdrop-blur-md flex items-center gap-2 pointer-events-none"
+        class="fixed bottom-[calc(5rem+max(0.6rem,env(safe-area-inset-bottom,0px)))] inset-x-0 mx-auto w-fit z-50 px-4 py-2 bg-slate-900/90 text-white text-xs font-bold rounded-full shadow-cute-lg backdrop-blur-md flex items-center gap-2 pointer-events-none"
       >
         <span>🐾</span>
         <span>Нажмите «Назад» ещё раз для выхода</span>

@@ -207,7 +207,7 @@ function getBalance(booking: Booking): number {
     </div>
 
     <!-- Timeline Scrollable Feed -->
-    <div class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 overscroll-contain">
+    <div class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 overscroll-contain pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div class="max-w-lg mx-auto">
         <!-- Empty State -->
         <div
