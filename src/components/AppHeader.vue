@@ -23,8 +23,8 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     <div class="flex items-center justify-between gap-2 max-w-lg mx-auto">
       <!-- App Brand -->
       <div class="flex items-center gap-2.5">
-        <div class="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-cat-400 to-cat-200 p-0.5 shadow-cute transition-transform active:scale-95 flex items-center justify-center">
-          <img src="/logo.svg" alt="Catlendar Logo" class="w-9 h-9 rounded-2xl object-contain drop-shadow" />
+        <div class="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-cat-400 to-cat-200 p-0.5 shadow-cute transition-transform active:scale-95 flex items-center justify-center">
+          <img src="/logo.svg" alt="Catlendar Logo" class="w-8 h-8 rounded-lg object-contain drop-shadow" />
           <span class="absolute -bottom-1 -right-1 text-xs">✨</span>
         </div>
         <div>
@@ -32,7 +32,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
             <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cat-600 via-cat-500 to-cat-400 bg-clip-text text-transparent">
               Catlendar
             </h1>
-            <span class="px-1.5 py-0.5 text-[10px] font-bold bg-cat-100 text-cat-700 rounded-full border border-cat-200">
+            <span class="px-1.5 py-0.5 text-[10px] font-bold bg-cat-100 text-cat-700 rounded-md border border-cat-200">
               v{{ updaterStore.currentVersion }}
             </span>
           </div>
@@ -47,7 +47,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         <!-- Quick Jump to Today -->
         <button
           @click="emit('go-today')"
-          class="px-2.5 py-1.5 rounded-xl bg-cat-100 hover:bg-cat-200 text-cat-700 font-bold text-xs flex items-center gap-1 border border-cat-200 active:scale-95 transition-all shadow-2xs"
+          class="px-2.5 py-1.5 rounded-lg bg-cat-100 hover:bg-cat-200 text-cat-700 font-bold text-xs flex items-center gap-1 border border-cat-200 active:scale-95 transition-all shadow-2xs"
           title="Вернуться к текущему месяцу"
         >
           <CalendarIcon class="w-3.5 h-3.5 text-cat-500" />
@@ -58,7 +58,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         <button
           @click="updaterStore.checkForUpdates(true)"
           title="Проверить обновления"
-          class="relative p-2 rounded-xl text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
+          class="relative p-2 rounded-lg text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
         >
           <RefreshCw class="w-4.5 h-4.5" :class="{ 'animate-spin': updaterStore.isChecking }" />
           <span
@@ -75,7 +75,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         <button
           @click="emit('open-pets')"
           title="Питомцы"
-          class="p-2 rounded-xl text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
+          class="p-2 rounded-lg text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
         >
           <PawPrint class="w-4.5 h-4.5" />
         </button>
@@ -84,7 +84,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         <button
           @click="emit('open-settings')"
           title="Настройки"
-          class="p-2 rounded-xl text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
+          class="p-2 rounded-lg text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
         >
           <SettingsIcon class="w-4.5 h-4.5" />
         </button>

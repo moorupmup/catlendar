@@ -118,13 +118,13 @@ function removePet(pet: Pet) {
       @click="emit('close')"
     >
       <div
-        class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-cat-100 overflow-hidden max-h-[90vh] flex flex-col transform transition-all"
+        class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-xl shadow-2xl border border-cat-100 overflow-hidden max-h-[90vh] flex flex-col transform transition-all"
         @click.stop
       >
         <!-- Modal Top Bar -->
         <div class="px-5 pt-4 pb-3 border-b border-cat-100 flex items-center justify-between bg-gradient-to-r from-cat-50 via-white to-cat-50">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2.5 py-1 rounded-full border border-cat-200 flex items-center gap-1.5">
+            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2 py-0.5 rounded-md border border-cat-200 flex items-center gap-1.5">
               <PawPrint class="w-3.5 h-3.5 text-cat-600" />
               <span>Наши питомцы</span>
             </span>
@@ -134,14 +134,14 @@ function removePet(pet: Pet) {
             <button
               v-if="!isCreating"
               @click="startCreate"
-              class="px-3 py-1.5 rounded-xl bg-cat-500 text-white text-xs font-bold hover:bg-cat-600 active:scale-95 transition-all flex items-center gap-1 shadow-xs"
+              class="px-3 py-1.5 rounded-lg bg-cat-500 text-white text-xs font-bold hover:bg-cat-600 active:scale-95 transition-all flex items-center gap-1 shadow-xs"
             >
               <Plus class="w-3.5 h-3.5" />
               <span>Добавить</span>
             </button>
             <button
               @click="emit('close')"
-              class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all ml-1"
+              class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all ml-1"
             >
               <X class="w-5 h-5" />
             </button>
@@ -253,12 +253,12 @@ function removePet(pet: Pet) {
           <div
             v-for="pet in petsStore.pets"
             :key="pet.id"
-            class="p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all"
+            class="p-3 rounded-xl border flex items-center justify-between gap-3 transition-all"
             :style="{ backgroundColor: `${pet.color}25`, borderColor: pet.color }"
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-inner border border-white"
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-inner border border-white"
                 :style="{ backgroundColor: pet.color }"
               >
                 {{ pet.avatar }}
@@ -282,7 +282,7 @@ function removePet(pet: Pet) {
             <div class="flex items-center gap-1">
               <button
                 @click="toggleFilter(pet.id)"
-                class="p-2 rounded-xl border transition-all text-xs flex items-center gap-1"
+                class="p-2 rounded-lg border transition-all text-xs flex items-center gap-1"
                 :class="bookingsStore.filterPetId === pet.id ? 'bg-cat-500 text-white border-cat-500 font-bold' : 'bg-white text-slate-600 border-cat-200 hover:bg-cat-50'"
                 title="Фильтр на календаре"
               >
@@ -290,14 +290,14 @@ function removePet(pet: Pet) {
               </button>
               <button
                 @click="startEdit(pet)"
-                class="p-2 rounded-xl bg-white text-slate-600 border border-cat-200 hover:bg-cat-50 transition-all"
+                class="p-2 rounded-lg bg-white text-slate-600 border border-cat-200 hover:bg-cat-50 transition-all"
                 title="Редактировать"
               >
                 <Edit2 class="w-3.5 h-3.5" />
               </button>
               <button
                 @click="removePet(pet)"
-                class="p-2 rounded-xl bg-white text-slate-400 border border-cat-200 hover:text-red-500 hover:bg-red-50 transition-all"
+                class="p-2 rounded-lg bg-white text-slate-400 border border-cat-200 hover:text-red-500 hover:bg-red-50 transition-all"
                 title="Удалить"
               >
                 <Trash2 class="w-3.5 h-3.5" />
@@ -314,7 +314,7 @@ function removePet(pet: Pet) {
         <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-end">
           <button
             @click="emit('close')"
-            class="px-5 py-2.5 rounded-2xl bg-white border border-cat-200 text-slate-700 text-xs font-bold shadow-xs hover:bg-cat-50 active:scale-95 transition-all"
+            class="px-4 py-2 rounded-lg bg-white border border-cat-200 text-slate-700 text-xs font-bold shadow-xs hover:bg-cat-50 active:scale-95 transition-all"
           >
             Готово
           </button>

@@ -20,13 +20,13 @@ const updaterStore = useUpdaterStore();
       @click="updaterStore.closeModal"
     >
       <div
-        class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-cat-100 overflow-hidden flex flex-col transform transition-all"
+        class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-xl shadow-2xl border border-cat-100 overflow-hidden flex flex-col transform transition-all"
         @click.stop
       >
         <!-- Modal Top Bar -->
         <div class="px-5 pt-4 pb-3 border-b border-cat-100 flex items-center justify-between bg-gradient-to-r from-cat-50 via-white to-cat-50">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2.5 py-1 rounded-full border border-cat-200 flex items-center gap-1.5">
+            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2 py-0.5 rounded-md border border-cat-200 flex items-center gap-1.5">
               <RefreshCw class="w-3.5 h-3.5 text-cat-600" :class="{ 'animate-spin': updaterStore.isChecking }" />
               <span>Обновление приложения</span>
             </span>
@@ -34,7 +34,7 @@ const updaterStore = useUpdaterStore();
 
           <button
             @click="updaterStore.closeModal"
-            class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all"
+            class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all"
           >
             <X class="w-5 h-5" />
           </button>
@@ -42,7 +42,7 @@ const updaterStore = useUpdaterStore();
 
         <div class="p-5 space-y-4">
           <!-- Error alert -->
-          <div v-if="updaterStore.errorMessage" class="bg-red-50 text-red-600 border border-red-200 p-3.5 rounded-2xl text-xs flex items-start gap-2.5">
+          <div v-if="updaterStore.errorMessage" class="bg-red-50 text-red-600 border border-red-200 p-3.5 rounded-xl text-xs flex items-start gap-2.5">
             <AlertCircle class="w-4 h-4 shrink-0 mt-0.5" />
             <div class="space-y-1">
               <span class="font-bold block">Внимание</span>
@@ -52,17 +52,17 @@ const updaterStore = useUpdaterStore();
 
           <!-- Checking state -->
           <div v-if="updaterStore.isChecking" class="py-8 text-center space-y-3">
-            <div class="w-12 h-12 mx-auto rounded-2xl bg-cat-100 flex items-center justify-center text-cat-600">
-              <RefreshCw class="w-6 h-6 animate-spin" />
+            <div class="w-10 h-10 mx-auto rounded-xl bg-cat-100 flex items-center justify-center text-cat-600">
+              <RefreshCw class="w-5 h-5 animate-spin" />
             </div>
             <p class="text-xs font-bold text-slate-700">Проверяем GitHub Releases...</p>
           </div>
 
           <!-- Update Available State -->
           <div v-else-if="updaterStore.hasUpdate && updaterStore.latestRelease" class="space-y-4">
-            <div class="bg-gradient-to-tr from-cat-50 to-cream-50 p-4 rounded-2xl border border-cat-200 flex items-center gap-3">
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cat-500 to-cat-400 text-white flex items-center justify-center shadow-cute">
-                <Sparkles class="w-6 h-6" />
+            <div class="bg-gradient-to-tr from-cat-50 to-cream-50 p-3.5 rounded-xl border border-cat-200 flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cat-500 to-cat-400 text-white flex items-center justify-center shadow-cute">
+                <Sparkles class="w-5 h-5" />
               </div>
               <div>
                 <span class="text-[10px] uppercase tracking-wider font-extrabold text-cat-600">Найдена новая версия!</span>
@@ -76,7 +76,7 @@ const updaterStore = useUpdaterStore();
             </div>
 
             <!-- Release Notes -->
-            <div class="bg-white rounded-2xl p-3.5 border border-cat-100 shadow-cute text-xs space-y-1 max-h-40 overflow-y-auto">
+            <div class="bg-white rounded-xl p-3 border border-cat-100 shadow-cute text-xs space-y-1 max-h-40 overflow-y-auto">
               <span class="font-extrabold text-slate-700 block">Что нового в обновлении:</span>
               <div class="text-slate-600 whitespace-pre-line leading-relaxed font-medium">
                 {{ updaterStore.latestRelease.body }}
@@ -87,7 +87,7 @@ const updaterStore = useUpdaterStore();
             <button
               @click="updaterStore.downloadAndInstall"
               :disabled="updaterStore.isDownloading"
-              class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cat-500 to-cat-400 text-white text-xs font-black shadow-cute hover:shadow-cute-lg active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              class="w-full py-3 rounded-xl bg-gradient-to-r from-cat-500 to-cat-400 text-white text-xs font-black shadow-cute hover:shadow-cute-lg active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Download class="w-4 h-4" :class="{ 'animate-bounce': updaterStore.isDownloading }" />
               <span>
@@ -98,8 +98,8 @@ const updaterStore = useUpdaterStore();
 
           <!-- Already Latest Version -->
           <div v-else-if="!updaterStore.errorMessage" class="py-6 text-center space-y-3">
-            <div class="w-14 h-14 mx-auto rounded-3xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
-              <CheckCircle class="w-7 h-7" />
+            <div class="w-12 h-12 mx-auto rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
+              <CheckCircle class="w-6 h-6" />
             </div>
             <div>
               <h4 class="text-sm font-extrabold text-slate-800">У вас самая свежая версия!</h4>
@@ -115,7 +115,7 @@ const updaterStore = useUpdaterStore();
           </span>
           <button
             @click="updaterStore.closeModal"
-            class="px-4 py-2 rounded-xl bg-white border border-cat-200 text-slate-600 text-xs font-bold hover:bg-cat-50 transition-all"
+            class="px-4 py-2 rounded-lg bg-white border border-cat-200 text-slate-600 text-xs font-bold hover:bg-cat-50 transition-all"
           >
             Закрыть
           </button>

@@ -88,7 +88,7 @@ onMounted(() => {
     <!-- Floating Action Button (FAB) to create booking manually -->
     <button
       @click="openManualCreate"
-      class="fixed bottom-6 right-5 sm:right-8 z-20 w-13 h-13 rounded-2xl bg-gradient-to-tr from-cat-500 to-cat-400 text-white shadow-cute-lg hover:shadow-xl active:scale-90 transition-all flex items-center justify-center border-2 border-white"
+      class="fixed bottom-6 right-5 sm:right-8 z-20 w-12 h-12 rounded-xl bg-gradient-to-tr from-cat-500 to-cat-400 text-white shadow-cute-lg hover:shadow-xl active:scale-90 transition-all flex items-center justify-center border-2 border-white"
       title="Новая передержка"
     >
       <Plus class="w-6 h-6 stroke-[2.5]" />

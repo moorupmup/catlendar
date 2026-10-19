@@ -188,20 +188,20 @@ function handleSave() {
       @click="emit('close')"
     >
       <div
-        class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-cat-100 overflow-hidden max-h-[92vh] flex flex-col transform transition-all"
+        class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-xl shadow-2xl border border-cat-100 overflow-hidden max-h-[92vh] flex flex-col transform transition-all"
         @click.stop
       >
         <!-- Modal Top Bar -->
         <div class="px-5 pt-4 pb-3 border-b border-cat-100 flex items-center justify-between bg-gradient-to-r from-cat-50 via-white to-cat-50">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2.5 py-1 rounded-full border border-cat-200">
+            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2 py-0.5 rounded-md border border-cat-200">
               {{ editingBooking ? '✏️ Редактирование брони' : '🐾 Новая передержка' }}
             </span>
           </div>
 
           <button
             @click="emit('close')"
-            class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all"
+            class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all"
           >
             <X class="w-5 h-5" />
           </button>
@@ -210,7 +210,7 @@ function handleSave() {
         <!-- Form Body -->
         <div class="p-5 overflow-y-auto space-y-4">
           <!-- Error alert -->
-          <div v-if="errorMessage" class="bg-red-50 text-red-600 border border-red-200 p-3 rounded-2xl text-xs flex items-center gap-2">
+          <div v-if="errorMessage" class="bg-red-50 text-red-600 border border-red-200 p-3 rounded-xl text-xs flex items-center gap-2">
             <AlertCircle class="w-4 h-4 shrink-0" />
             <span>{{ errorMessage }}</span>
           </div>
@@ -236,7 +236,7 @@ function handleSave() {
                 v-for="p in petsStore.pets"
                 :key="p.id"
                 @click="petId = p.id"
-                class="p-2.5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center text-center select-none"
+                class="p-2.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center select-none"
                 :class="petId === p.id ? 'border-cat-500 bg-cat-50 shadow-cute scale-102 font-extrabold' : 'border-cat-100 hover:border-cat-200 bg-white'"
                 :style="petId === p.id ? { borderColor: p.color } : {}"
               >
@@ -248,13 +248,13 @@ function handleSave() {
           </div>
 
           <!-- Section 2: Dates -->
-          <div class="bg-cat-50/50 p-3.5 rounded-2xl border border-cat-100 space-y-3">
+          <div class="bg-cat-50/50 p-3.5 rounded-xl border border-cat-100 space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <Calendar class="w-3.5 h-3.5 text-cat-500" />
                 Сроки передержки
               </span>
-              <span class="text-xs font-bold text-cat-700 bg-white px-2 py-0.5 rounded-lg border border-cat-200">
+              <span class="text-xs font-bold text-cat-700 bg-white px-2 py-0.5 rounded-md border border-cat-200">
                 Всего: {{ durationDays }} дн.
               </span>
             </div>
@@ -265,7 +265,7 @@ function handleSave() {
                 <input
                   v-model="startDate"
                   type="date"
-                  class="w-full bg-white border border-cat-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
+                  class="w-full bg-white border border-cat-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
                 />
               </div>
               <div>
@@ -273,14 +273,14 @@ function handleSave() {
                 <input
                   v-model="endDate"
                   type="date"
-                  class="w-full bg-white border border-cat-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
+                  class="w-full bg-white border border-cat-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
                 />
               </div>
             </div>
           </div>
 
           <!-- Section 3: Finances -->
-          <div class="bg-cat-50/50 p-3.5 rounded-2xl border border-cat-100 space-y-3">
+          <div class="bg-cat-50/50 p-3.5 rounded-xl border border-cat-100 space-y-3">
             <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
               <CreditCard class="w-3.5 h-3.5 text-cat-500" />
               Финансы и предоплата
@@ -294,7 +294,7 @@ function handleSave() {
                   type="number"
                   min="0"
                   step="50"
-                  class="w-full bg-white border border-cat-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
+                  class="w-full bg-white border border-cat-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
                 />
               </div>
 
@@ -304,7 +304,7 @@ function handleSave() {
                   v-model.number="totalAmount"
                   type="number"
                   min="0"
-                  class="w-full bg-white border border-cat-200 rounded-xl px-3 py-2 text-xs font-black text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
+                  class="w-full bg-white border border-cat-200 rounded-lg px-3 py-2 text-xs font-black text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
                 />
               </div>
 
@@ -314,12 +314,12 @@ function handleSave() {
                   v-model.number="prepayment"
                   type="number"
                   min="0"
-                  class="w-full bg-white border border-cat-200 rounded-xl px-3 py-2 text-xs font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  class="w-full bg-white border border-cat-200 rounded-lg px-3 py-2 text-xs font-bold text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 />
               </div>
 
               <div class="flex items-end">
-                <label class="w-full flex items-center gap-2 p-2 rounded-xl bg-white border border-cat-200 cursor-pointer select-none">
+                <label class="w-full flex items-center gap-2 p-2 rounded-lg bg-white border border-cat-200 cursor-pointer select-none">
                   <input
                     v-model="isPaidInFull"
                     type="checkbox"
@@ -332,7 +332,7 @@ function handleSave() {
           </div>
 
           <!-- Section 4: Owner Info -->
-          <div class="bg-white p-3.5 rounded-2xl border border-cat-100 shadow-cute space-y-3">
+          <div class="bg-white p-3.5 rounded-xl border border-cat-100 shadow-cute space-y-3">
             <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
               <User class="w-3.5 h-3.5 text-cat-500" />
               Контакты владельца
@@ -344,7 +344,7 @@ function handleSave() {
                 v-model="ownerName"
                 type="text"
                 placeholder="например, Дарья"
-                class="w-full bg-cat-50/40 border border-cat-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
+                class="w-full bg-cat-50/40 border border-cat-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
               />
             </div>
 
@@ -355,7 +355,7 @@ function handleSave() {
                   v-model="ownerPhone"
                   type="tel"
                   placeholder="+7 (999) 000-00-00"
-                  class="w-full bg-cat-50/40 border border-cat-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
+                  class="w-full bg-cat-50/40 border border-cat-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
                 />
               </div>
 
@@ -365,7 +365,7 @@ function handleSave() {
                   v-model="ownerTelegram"
                   type="text"
                   placeholder="@username"
-                  class="w-full bg-cat-50/40 border border-cat-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
+                  class="w-full bg-cat-50/40 border border-cat-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
                 />
               </div>
             </div>
@@ -378,7 +378,7 @@ function handleSave() {
               v-model="notes"
               rows="2"
               placeholder="Особенности ухода, время кормления, игрушки..."
-              class="w-full bg-cat-50/40 border border-cat-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400 resize-none"
+              class="w-full bg-cat-50/40 border border-cat-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400 resize-none"
             ></textarea>
           </div>
         </div>
@@ -388,14 +388,14 @@ function handleSave() {
           <button
             type="button"
             @click="emit('close')"
-            class="px-4 py-2.5 rounded-2xl bg-white border border-cat-200 text-slate-600 text-xs font-bold hover:bg-cat-50 active:scale-95 transition-all"
+            class="px-4 py-2 rounded-lg bg-white border border-cat-200 text-slate-600 text-xs font-bold hover:bg-cat-50 active:scale-95 transition-all"
           >
             Отмена
           </button>
           <button
             type="button"
             @click="handleSave"
-            class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-cat-500 to-cat-400 text-white text-xs font-bold shadow-cute hover:shadow-cute-lg active:scale-95 transition-all flex items-center gap-1.5"
+            class="px-4 py-2 rounded-lg bg-gradient-to-r from-cat-500 to-cat-400 text-white text-xs font-bold shadow-cute hover:shadow-cute-lg active:scale-95 transition-all flex items-center gap-1.5"
           >
             <Sparkles class="w-3.5 h-3.5" />
             <span>{{ editingBooking ? 'Сохранить изменения' : 'Создать бронь' }}</span>

@@ -110,13 +110,13 @@ function cleanWhatsapp(phone?: string): string {
     >
       <!-- Bottom Sheet Modal Container -->
       <div
-        class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-cat-100 overflow-hidden max-h-[92vh] flex flex-col transform transition-all"
+        class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-xl shadow-2xl border border-cat-100 overflow-hidden max-h-[92vh] flex flex-col transform transition-all"
         @click.stop
       >
         <!-- Modal Top Bar -->
         <div class="px-5 pt-4 pb-3 border-b border-cat-100 flex items-center justify-between bg-gradient-to-r from-cat-50 via-white to-cat-50">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-cat-600 bg-cat-100 px-2 py-0.5 rounded-full border border-cat-200">
+            <span class="text-xs font-bold text-cat-600 bg-cat-100 px-2 py-0.5 rounded-md border border-cat-200">
               🐾 Детали передержки
             </span>
           </div>
@@ -124,21 +124,21 @@ function cleanWhatsapp(phone?: string): string {
           <div class="flex items-center gap-1">
             <button
               @click="openEdit"
-              class="p-2 rounded-xl text-slate-500 hover:text-cat-600 hover:bg-cat-50 active:scale-90 transition-all"
+              class="p-2 rounded-lg text-slate-500 hover:text-cat-600 hover:bg-cat-50 active:scale-90 transition-all"
               title="Редактировать"
             >
               <Edit3 class="w-4 h-4" />
             </button>
             <button
               @click="handleDelete"
-              class="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all"
+              class="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all"
               title="Удалить"
             >
               <Trash2 class="w-4 h-4" />
             </button>
             <button
               @click="emit('close')"
-              class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all ml-1"
+              class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all ml-1"
             >
               <X class="w-5 h-5" />
             </button>
@@ -149,14 +149,14 @@ function cleanWhatsapp(phone?: string): string {
         <div class="p-5 overflow-y-auto space-y-4">
           <!-- Pet Profile Header Card -->
           <div
-            class="p-4 rounded-2xl border flex items-center gap-3.5 relative overflow-hidden"
+            class="p-3.5 rounded-xl border flex items-center gap-3 relative overflow-hidden"
             :style="{
               backgroundColor: pet?.color ? `${pet.color}30` : '#FFF5F7',
               borderColor: pet?.color || '#FFCCD8'
             }"
           >
             <div
-              class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-white"
+              class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-inner border border-white"
               :style="{ backgroundColor: pet?.color || '#FFE6EC' }"
             >
               {{ pet?.avatar || '🐾' }}
@@ -164,7 +164,7 @@ function cleanWhatsapp(phone?: string): string {
 
             <div class="flex-1">
               <div class="flex items-center gap-2">
-                <h3 class="text-lg font-black text-slate-800">
+                <h3 class="text-base font-black text-slate-800">
                   {{ pet?.name || 'Питомец' }}
                 </h3>
                 <span
@@ -176,34 +176,34 @@ function cleanWhatsapp(phone?: string): string {
               <p class="text-xs text-slate-500 font-medium">
                 {{ pet?.breed || 'Вид не указан' }}
               </p>
-              <p v-if="pet?.notes" class="text-xs text-slate-600 mt-1 italic line-clamp-2">
+              <p v-if="pet?.notes" class="text-xs text-slate-600 mt-0.5 italic line-clamp-2">
                 «{{ pet.notes }}»
               </p>
             </div>
           </div>
 
           <!-- Dates & Duration Card -->
-          <div class="bg-cat-50/60 rounded-2xl p-4 border border-cat-100 flex items-center justify-between">
+          <div class="bg-cat-50/60 rounded-xl p-3.5 border border-cat-100 flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-cat-200/70 text-cat-700 flex items-center justify-center">
-                <Calendar class="w-5 h-5" />
+              <div class="w-9 h-9 rounded-lg bg-cat-200/70 text-cat-700 flex items-center justify-center">
+                <Calendar class="w-4.5 h-4.5" />
               </div>
               <div>
-                <span class="text-[11px] font-bold text-cat-600 uppercase tracking-wider block">Сроки пребывания</span>
-                <p class="text-sm font-extrabold text-slate-800">
+                <span class="text-[10px] font-bold text-cat-600 uppercase tracking-wider block">Сроки пребывания</span>
+                <p class="text-xs font-extrabold text-slate-800">
                   {{ booking.startDate }} → {{ booking.endDate }}
                 </p>
               </div>
             </div>
             <div class="text-right">
-              <span class="text-xs font-black text-cat-700 bg-white px-2.5 py-1 rounded-xl border border-cat-200 shadow-xs">
+              <span class="text-xs font-black text-cat-700 bg-white px-2 py-0.5 rounded-md border border-cat-200 shadow-xs">
                 {{ daysCount }} дн.
               </span>
             </div>
           </div>
 
           <!-- Financial Card: Rate, Total, Prepayment, Remaining -->
-          <div class="bg-white rounded-2xl p-4 border border-cat-100 shadow-cute space-y-3">
+          <div class="bg-white rounded-xl p-3.5 border border-cat-100 shadow-cute space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <CreditCard class="w-4 h-4 text-cat-500" />
@@ -214,7 +214,7 @@ function cleanWhatsapp(phone?: string): string {
 
               <!-- Paid badge -->
               <span
-                class="px-2.5 py-0.5 text-xs font-bold rounded-full flex items-center gap-1"
+                class="px-2 py-0.5 text-xs font-bold rounded-md flex items-center gap-1"
                 :class="booking.isPaidInFull ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200'"
               >
                 <CheckCircle v-if="booking.isPaidInFull" class="w-3.5 h-3.5" />
@@ -224,21 +224,21 @@ function cleanWhatsapp(phone?: string): string {
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs">
-              <div class="bg-cat-50/50 p-2.5 rounded-xl border border-cat-100/60">
-                <span class="text-slate-400 block mb-0.5">Тариф в сутки</span>
-                <span class="font-extrabold text-slate-800 text-sm">{{ booking.dailyRate }} ₽</span>
+              <div class="bg-cat-50/50 p-2 rounded-lg border border-cat-100/60">
+                <span class="text-slate-400 block mb-0.5 text-[11px]">Тариф в сутки</span>
+                <span class="font-extrabold text-slate-800 text-xs">{{ booking.dailyRate }} ₽</span>
               </div>
-              <div class="bg-cat-50/50 p-2.5 rounded-xl border border-cat-100/60">
-                <span class="text-slate-400 block mb-0.5">Общая стоимость</span>
-                <span class="font-extrabold text-slate-800 text-sm">{{ booking.totalAmount }} ₽</span>
+              <div class="bg-cat-50/50 p-2 rounded-lg border border-cat-100/60">
+                <span class="text-slate-400 block mb-0.5 text-[11px]">Общая стоимость</span>
+                <span class="font-extrabold text-slate-800 text-xs">{{ booking.totalAmount }} ₽</span>
               </div>
-              <div class="bg-cat-50/50 p-2.5 rounded-xl border border-cat-100/60">
-                <span class="text-slate-400 block mb-0.5">Внесена предоплата</span>
-                <span class="font-extrabold text-emerald-700 text-sm">{{ booking.prepayment || 0 }} ₽</span>
+              <div class="bg-cat-50/50 p-2 rounded-lg border border-cat-100/60">
+                <span class="text-slate-400 block mb-0.5 text-[11px]">Внесена предоплата</span>
+                <span class="font-extrabold text-emerald-700 text-xs">{{ booking.prepayment || 0 }} ₽</span>
               </div>
-              <div class="bg-cat-50/50 p-2.5 rounded-xl border border-cat-100/60">
-                <span class="text-slate-400 block mb-0.5">Остаток к доплате</span>
-                <span class="font-extrabold text-sm" :class="remainingAmount > 0 ? 'text-cat-600' : 'text-slate-500'">
+              <div class="bg-cat-50/50 p-2 rounded-lg border border-cat-100/60">
+                <span class="text-slate-400 block mb-0.5 text-[11px]">Остаток к доплате</span>
+                <span class="font-extrabold text-xs" :class="remainingAmount > 0 ? 'text-cat-600' : 'text-slate-500'">
                   {{ remainingAmount }} ₽
                 </span>
               </div>
@@ -247,7 +247,7 @@ function cleanWhatsapp(phone?: string): string {
             <!-- Quick toggle full payment button -->
             <button
               @click="toggleFullPayment"
-              class="w-full py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border"
+              class="w-full py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 border"
               :class="booking.isPaidInFull
                 ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                 : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 active:scale-95'"
@@ -258,7 +258,7 @@ function cleanWhatsapp(phone?: string): string {
           </div>
 
           <!-- Owner Profile & Quick Contacts -->
-          <div class="bg-white rounded-2xl p-4 border border-cat-100 shadow-cute space-y-3">
+          <div class="bg-white rounded-xl p-3.5 border border-cat-100 shadow-cute space-y-3">
             <div class="flex items-center gap-2">
               <User class="w-4 h-4 text-cat-500" />
               <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider">
@@ -282,10 +282,10 @@ function cleanWhatsapp(phone?: string): string {
                 <a
                   v-if="booking.owner?.phone"
                   :href="`tel:${cleanPhone(booking.owner.phone)}`"
-                  class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all"
+                  class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all"
                   title="Позвонить"
                 >
-                  <Phone class="w-4 h-4" />
+                  <Phone class="w-3.5 h-3.5" />
                 </a>
 
                 <!-- WhatsApp -->
@@ -293,10 +293,10 @@ function cleanWhatsapp(phone?: string): string {
                   v-if="booking.owner?.whatsapp || booking.owner?.phone"
                   :href="`https://wa.me/${cleanWhatsapp(booking.owner.whatsapp || booking.owner.phone)}`"
                   target="_blank"
-                  class="w-9 h-9 rounded-xl bg-green-50 text-green-600 border border-green-200 flex items-center justify-center hover:bg-green-100 active:scale-90 transition-all"
+                  class="w-8 h-8 rounded-lg bg-green-50 text-green-600 border border-green-200 flex items-center justify-center hover:bg-green-100 active:scale-90 transition-all"
                   title="WhatsApp"
                 >
-                  <MessageCircle class="w-4 h-4" />
+                  <MessageCircle class="w-3.5 h-3.5" />
                 </a>
 
                 <!-- Telegram -->
@@ -304,22 +304,22 @@ function cleanWhatsapp(phone?: string): string {
                   v-if="booking.owner?.telegram"
                   :href="`https://t.me/${booking.owner.telegram.replace('@', '')}`"
                   target="_blank"
-                  class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center hover:bg-sky-100 active:scale-90 transition-all"
+                  class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center hover:bg-sky-100 active:scale-90 transition-all"
                   title="Telegram"
                 >
-                  <Send class="w-4 h-4" />
+                  <Send class="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
 
-            <div v-if="booking.owner?.notes" class="text-xs text-slate-500 bg-cat-50/50 p-2.5 rounded-xl border border-cat-100/50">
+            <div v-if="booking.owner?.notes" class="text-xs text-slate-500 bg-cat-50/50 p-2.5 rounded-lg border border-cat-100/50">
               <span class="font-bold text-slate-600 block mb-0.5">Примечание владельца:</span>
               {{ booking.owner.notes }}
             </div>
           </div>
 
           <!-- Booking Notes -->
-          <div v-if="booking.notes" class="bg-amber-50/60 rounded-2xl p-3.5 border border-amber-200/60 text-xs text-amber-900">
+          <div v-if="booking.notes" class="bg-amber-50/60 rounded-xl p-3 border border-amber-200/60 text-xs text-amber-900">
             <span class="font-bold block mb-1">🐾 Памятка по передержке:</span>
             {{ booking.notes }}
           </div>
@@ -329,7 +329,7 @@ function cleanWhatsapp(phone?: string): string {
         <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-end">
           <button
             @click="emit('close')"
-            class="px-5 py-2.5 rounded-2xl bg-white border border-cat-200 text-slate-700 text-xs font-bold shadow-xs hover:bg-cat-50 active:scale-95 transition-all"
+            class="px-4 py-2 rounded-lg bg-white border border-cat-200 text-slate-700 text-xs font-bold shadow-xs hover:bg-cat-50 active:scale-95 transition-all"
           >
             Закрыть
           </button>

@@ -247,17 +247,17 @@ defineExpose({
         v-for="m in monthsList"
         :key="m.id"
         :id="m.id"
-        class="bg-white/80 p-2 sm:p-3 rounded-3xl border border-cat-100 shadow-cute scroll-mt-28 transition-all"
+        class="bg-white/90 p-2 sm:p-2.5 rounded-xl border border-cat-100 shadow-cute scroll-mt-28 transition-all"
       >
         <!-- Month Header Banner -->
-        <div class="flex items-center justify-between px-2 pt-1 pb-2.5 mb-1 border-b border-cat-100/60">
+        <div class="flex items-center justify-between px-1.5 pt-0.5 pb-2 mb-1 border-b border-cat-100/60">
           <div class="flex items-center gap-2">
             <h3 class="text-sm sm:text-base font-black text-slate-800 tracking-tight">
               {{ m.title }}
             </h3>
             <span
               v-if="m.isCurrentMonth"
-              class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-cat-100 text-cat-700 border border-cat-200"
+              class="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-cat-100 text-cat-700 border border-cat-200"
             >
               Текущий месяц 🐾
             </span>
@@ -267,13 +267,13 @@ defineExpose({
           </span>
         </div>
 
-        <!-- Month Grid: 7 columns, perfect aspect-square days -->
+        <!-- Month Grid: 7 columns, crisp aspect-square days -->
         <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
           <!-- Empty Spacer cells before day 1 -->
           <div
             v-for="spacer in m.paddingStart"
             :key="`spacer-${m.id}-${spacer}`"
-            class="aspect-square rounded-xl sm:rounded-2xl bg-cat-50/20 border border-transparent opacity-30 pointer-events-none"
+            class="aspect-square rounded-lg bg-cat-50/20 border border-transparent opacity-20 pointer-events-none"
           />
 
           <!-- Actual Month Days -->
@@ -281,7 +281,7 @@ defineExpose({
             v-for="day in m.days"
             :key="day.dateString"
             @click="(e) => handleDayClick(day, e)"
-            class="aspect-square rounded-xl sm:rounded-2xl flex flex-col justify-between p-1 sm:p-1.5 transition-all select-none cursor-pointer border relative overflow-hidden group shadow-2xs active:scale-95"
+            class="aspect-square rounded-lg flex flex-col justify-between p-1 transition-all select-none cursor-pointer border relative overflow-hidden group shadow-2xs active:scale-95"
             :style="day.booking && day.pet ? {
               backgroundColor: day.pet.color,
               borderColor: day.pet.color,
@@ -290,7 +290,7 @@ defineExpose({
             :class="[
               // Booked Day: Entirely colored square
               day.booking && day.pet
-                ? 'shadow-sm font-bold'
+                ? 'shadow-xs font-bold'
                 : // Free day: within selection range
                   isDayInSelectedRange(day.dateString)
                   ? 'bg-cat-200 border-cat-400 text-cat-800 shadow-inner ring-2 ring-cat-300'
@@ -302,58 +302,68 @@ defineExpose({
               activeTooltip?.dayString === day.dateString ? 'ring-2 ring-cat-600 scale-102 z-10' : '',
             ]"
           >
-            <!-- Top: Day Number & Indicators -->
+            <!-- Top: Day Number (left) & Avatar Emoji (right) -->
             <div class="flex items-center justify-between w-full leading-none">
               <span
-                class="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center text-[11px] sm:text-xs font-black rounded-full"
+                class="text-[11px] sm:text-xs font-black transition-transform"
                 :class="[
                   day.isToday && !day.booking
-                    ? 'bg-cat-500 text-white shadow-xs scale-105'
+                    ? 'w-4.5 h-4.5 flex items-center justify-center bg-cat-500 text-white rounded shadow-xs text-[10px]'
                     : day.isToday && day.booking
-                      ? 'bg-black/20 text-current'
+                      ? 'px-1 py-0.5 bg-black/20 text-current rounded text-[10px]'
                       : ''
                 ]"
               >
                 {{ day.dayNumber }}
               </span>
 
-              <span v-if="day.isStart" class="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
-                заезд
+              <!-- Top-right: Pet Avatar Emoji (compact and cute) -->
+              <span
+                v-if="day.booking && day.pet"
+                class="text-xs sm:text-sm drop-shadow-2xs leading-none transform group-hover:scale-110 transition-transform"
+                :title="day.pet.name"
+              >
+                {{ day.pet.avatar }}
               </span>
-              <span v-else-if="day.isEnd" class="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
-                выезд
-              </span>
-              <span v-else-if="day.isToday" class="text-[10px] text-cat-500">🐾</span>
+              <span v-else-if="day.isToday" class="text-[9px] text-cat-500">🐾</span>
             </div>
 
-            <!-- Center: Pet Avatar (if booked) or Selection Marker -->
-            <div class="flex flex-col items-center justify-center flex-1 my-0.5 pointer-events-none">
+            <!-- Center: Pet Nickname (fully visible, bold, centered!) -->
+            <div class="flex flex-col items-center justify-center flex-1 my-0.5 pointer-events-none w-full px-0.5">
               <template v-if="day.booking && day.pet">
-                <span class="text-base sm:text-xl drop-shadow-xs leading-none transform group-hover:scale-110 transition-transform">
-                  {{ day.pet.avatar }}
-                </span>
+                <p
+                  class="text-[10px] sm:text-[11px] font-black truncate w-full text-center leading-tight tracking-tight"
+                >
+                  {{ day.pet.name }}
+                </p>
               </template>
 
               <template v-else-if="isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)">
-                <span class="text-xs sm:text-sm font-black text-cat-600">✓</span>
+                <span class="text-xs font-black text-cat-600">✓</span>
               </template>
 
               <template v-else>
-                <span class="text-[10px] text-cat-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="text-[9px] text-cat-300 opacity-0 group-hover:opacity-100 transition-opacity">
                   +
                 </span>
               </template>
             </div>
 
-            <!-- Bottom: Pet Name -->
-            <div class="w-full text-center pointer-events-none">
-              <p
-                v-if="day.booking && day.pet"
-                class="text-[9px] sm:text-[10px] font-extrabold truncate w-full leading-tight tracking-tight"
+            <!-- Bottom: Status badge (заезд / выезд) -->
+            <div class="w-full text-center pointer-events-none leading-none">
+              <span
+                v-if="day.isStart"
+                class="inline-block text-[8px] font-black uppercase tracking-tighter bg-black/15 px-1 py-0.5 rounded"
               >
-                {{ day.pet.name }}
-              </p>
-              <span v-else class="h-2.5 block"></span>
+                заезд
+              </span>
+              <span
+                v-else-if="day.isEnd"
+                class="inline-block text-[8px] font-black uppercase tracking-tighter bg-black/15 px-1 py-0.5 rounded"
+              >
+                выезд
+              </span>
+              <span v-else class="h-2 block"></span>
             </div>
           </div>
         </div>
@@ -371,7 +381,7 @@ defineExpose({
     >
       <div
         v-if="bookingsStore.selectionConflictError"
-        class="fixed top-28 inset-x-4 max-w-md mx-auto z-40 bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-2xl text-xs flex items-center justify-between gap-2 shadow-cute-lg"
+        class="fixed top-28 inset-x-4 max-w-md mx-auto z-40 bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-xl text-xs flex items-center justify-between gap-2 shadow-cute-lg"
       >
         <div class="flex items-center gap-2">
           <AlertTriangle class="w-4 h-4 text-amber-600 shrink-0" />
@@ -398,7 +408,7 @@ defineExpose({
       <div
         v-if="activeTooltip"
         @click.stop="openDetailedFromTooltip"
-        class="fixed z-40 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-cute-lg border border-cat-200 cursor-pointer max-w-[210px] transform -translate-x-1/2 -translate-y-full hover:scale-105 transition-all"
+        class="fixed z-40 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-cute-lg border border-cat-200 cursor-pointer max-w-[210px] transform -translate-x-1/2 -translate-y-full hover:scale-105 transition-all"
         :style="{ left: `${activeTooltip.x}px`, top: `${activeTooltip.y}px` }"
       >
         <!-- Arrow pointing down -->
@@ -406,7 +416,7 @@ defineExpose({
 
         <div class="flex items-center gap-2 mb-1.5">
           <div
-            class="w-8 h-8 rounded-xl flex items-center justify-center text-base shadow-inner border border-white"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-base shadow-inner border border-white"
             :style="{ backgroundColor: activeTooltip.pet.color }"
           >
             {{ activeTooltip.pet.avatar }}
@@ -421,7 +431,7 @@ defineExpose({
           </div>
         </div>
 
-        <div class="text-[11px] text-slate-600 bg-cat-50/70 p-2 rounded-xl border border-cat-100 mb-1.5 space-y-0.5">
+        <div class="text-[11px] text-slate-600 bg-cat-50/70 p-2 rounded-lg border border-cat-100 mb-1.5 space-y-0.5">
           <div class="flex justify-between">
             <span class="text-slate-400">Сроки:</span>
             <span class="font-bold text-slate-800">
@@ -459,10 +469,10 @@ defineExpose({
     >
       <div
         v-if="bookingsStore.selectionStart"
-        class="fixed bottom-6 inset-x-4 max-w-md mx-auto z-30 bg-white/95 backdrop-blur-md rounded-3xl p-3.5 shadow-cute-lg border border-cat-200 flex items-center justify-between gap-3"
+        class="fixed bottom-6 inset-x-4 max-w-md mx-auto z-30 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-cute-lg border border-cat-200 flex items-center justify-between gap-3"
       >
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-cat-100 flex items-center justify-center text-cat-600">
+          <div class="w-9 h-9 rounded-lg bg-cat-100 flex items-center justify-center text-cat-600">
             <CalendarPlus class="w-5 h-5" />
           </div>
           <div>
@@ -479,14 +489,14 @@ defineExpose({
         <div class="flex items-center gap-1.5">
           <button
             @click="bookingsStore.clearSelection"
-            class="p-2 rounded-2xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+            class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
             title="Сбросить выбор"
           >
             <X class="w-5 h-5" />
           </button>
           <button
             @click="confirmCreateBooking"
-            class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cat-500 to-cat-400 text-white text-xs font-bold shadow-cute hover:shadow-cute-lg active:scale-95 transition-all flex items-center gap-1.5"
+            class="px-4 py-2 rounded-lg bg-gradient-to-r from-cat-500 to-cat-400 text-white text-xs font-bold shadow-cute hover:shadow-cute-lg active:scale-95 transition-all flex items-center gap-1.5"
           >
             <Plus class="w-4 h-4 stroke-[3]" />
             <span>Оформить</span>
