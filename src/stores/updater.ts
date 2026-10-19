@@ -7,7 +7,7 @@ import type { ReleaseInfo } from '../types';
 
 export const useUpdaterStore = defineStore('updater', () => {
   const currentVersion = ref('1.0.0');
-  const githubRepo = ref(localStorage.getItem('catlendar_github_repo') || 'catlendar/catlendar');
+  const githubRepo = ref(localStorage.getItem('catlendar_github_repo') || 'moorupmup/catlendar');
   
   const isChecking = ref(false);
   const isDownloading = ref(false);
