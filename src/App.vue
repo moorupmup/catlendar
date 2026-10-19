@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { addMonths } from 'date-fns';
 import type { Booking } from './types';
 import AppHeader from './components/AppHeader.vue';
 import CalendarMonth from './components/CalendarMonth.vue';
@@ -12,7 +11,7 @@ import UpdateModal from './components/UpdateModal.vue';
 import { useUpdaterStore } from './stores/updater';
 import { Plus } from 'lucide-vue-next';
 
-const currentDate = ref(new Date());
+const calendarRef = ref<InstanceType<typeof CalendarMonth> | null>(null);
 
 const isDetailsOpen = ref(false);
 const selectedBooking = ref<Booking | null>(null);
@@ -26,16 +25,8 @@ const isSettingsOpen = ref(false);
 
 const updaterStore = useUpdaterStore();
 
-function prevMonth() {
-  currentDate.value = addMonths(currentDate.value, -1);
-}
-
-function nextMonth() {
-  currentDate.value = addMonths(currentDate.value, 1);
-}
-
-function goToday() {
-  currentDate.value = new Date();
+function handleGoToday() {
+  calendarRef.value?.scrollToToday(true);
 }
 
 // 2nd tap action: open booking details modal
@@ -77,21 +68,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cat-50 flex flex-col text-slate-800 select-none pb-safe">
-    <!-- Header -->
+  <div class="h-screen bg-cat-50 flex flex-col text-slate-800 select-none overflow-hidden pb-safe">
+    <!-- Header with fixed days of week -->
     <AppHeader
-      :current-date="currentDate"
-      @prev-month="prevMonth"
-      @next-month="nextMonth"
-      @go-today="goToday"
+      @go-today="handleGoToday"
       @open-pets="isPetsOpen = true"
       @open-settings="isSettingsOpen = true"
     />
 
-    <!-- Main Calendar Area -->
-    <main class="flex-1 flex flex-col">
+    <!-- Main Calendar Area: Continuous Vertical Month Stream -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
       <CalendarMonth
-        :current-date="currentDate"
+        ref="calendarRef"
         @select-booking="openBookingDetails"
         @create-booking="handleCreateFromRange"
       />

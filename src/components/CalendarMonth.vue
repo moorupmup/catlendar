@@ -1,27 +1,46 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, nextTick } from 'vue';
 import {
   startOfMonth,
   endOfMonth,
-  startOfWeek,
-  endOfWeek,
   eachDayOfInterval,
   format,
-  isSameMonth,
   isToday,
   isBefore,
   startOfDay,
   parseISO,
   isWithinInterval,
+  addMonths,
+  getDay,
 } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { useBookingsStore } from '../stores/bookings';
 import { usePetsStore } from '../stores/pets';
-import type { Booking, Pet, CalendarDay } from '../types';
+import type { Booking, Pet } from '../types';
 import { Plus, CalendarPlus, X, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-vue-next';
 
-const props = defineProps<{
-  currentDate: Date;
-}>();
+interface MonthData {
+  id: string;
+  year: number;
+  monthIndex: number;
+  date: Date;
+  title: string;
+  isCurrentMonth: boolean;
+  paddingStart: number; // empty spacer cells before 1st day of month (0 for Mon, 6 for Sun)
+  days: MonthDay[];
+}
+
+interface MonthDay {
+  date: Date;
+  dateString: string;
+  dayNumber: number;
+  isToday: boolean;
+  isPast: boolean;
+  booking?: Booking;
+  pet?: Pet;
+  isStart?: boolean;
+  isEnd?: boolean;
+}
 
 const emit = defineEmits<{
   (e: 'select-booking', booking: Booking): void;
@@ -40,59 +59,82 @@ const activeTooltip = ref<{
   y: number;
 } | null>(null);
 
-const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-
-// Calculate all days to render in the month grid
-const calendarDays = computed<CalendarDay[]>(() => {
-  const monthStart = startOfMonth(props.currentDate);
-  const monthEnd = endOfMonth(props.currentDate);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-
-  const rawDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+// Generate vertical stream of months: 4 months in past to 14 months ahead (19 months)
+const monthsList = computed<MonthData[]>(() => {
+  const now = new Date();
+  const currentMonthStart = startOfMonth(now);
   const activeBookings = bookingsStore.filteredBookings;
+  const list: MonthData[] = [];
 
-  return rawDays.map(date => {
-    const dateString = format(date, 'yyyy-MM-dd');
-    const dayStart = startOfDay(date);
+  for (let offset = -4; offset <= 14; offset++) {
+    const monthDate = addMonths(currentMonthStart, offset);
+    const mStart = startOfMonth(monthDate);
+    const mEnd = endOfMonth(monthDate);
 
-    // Strictly 1 pet at home at a time! Find the booking covering this day
-    const booking = activeBookings.find(b => {
-      const bStart = startOfDay(parseISO(b.startDate));
-      const bEnd = startOfDay(parseISO(b.endDate));
-      return isWithinInterval(dayStart, { start: bStart, end: bEnd });
+    // Padding offset (Monday = 0 ... Sunday = 6)
+    const rawDayOfWeek = getDay(mStart); // Sunday is 0, Monday is 1
+    const paddingStart = (rawDayOfWeek + 6) % 7; // Convert to Mon=0, Sun=6
+
+    const daysInterval = eachDayOfInterval({ start: mStart, end: mEnd });
+
+    const monthDays: MonthDay[] = daysInterval.map(date => {
+      const dateString = format(date, 'yyyy-MM-dd');
+      const dayStart = startOfDay(date);
+
+      // Strictly 1 pet at a time
+      const booking = activeBookings.find(b => {
+        const bStart = startOfDay(parseISO(b.startDate));
+        const bEnd = startOfDay(parseISO(b.endDate));
+        return isWithinInterval(dayStart, { start: bStart, end: bEnd });
+      });
+
+      let pet: Pet | undefined;
+      let isStart = false;
+      let isEnd = false;
+
+      if (booking) {
+        pet = petsStore.getPetById(booking.petId) || {
+          id: booking.petId,
+          name: 'Питомец',
+          type: 'cat',
+          color: '#FFD6A5',
+          textColor: '#693B00',
+          avatar: '🐾',
+        };
+        isStart = dateString === booking.startDate;
+        isEnd = dateString === booking.endDate;
+      }
+
+      return {
+        date,
+        dateString,
+        dayNumber: date.getDate(),
+        isToday: isToday(date),
+        isPast: isBefore(dayStart, startOfDay(now)),
+        booking,
+        pet,
+        isStart,
+        isEnd,
+      };
     });
 
-    let pet: Pet | undefined;
-    let isStart = false;
-    let isEnd = false;
+    const monthName = format(mStart, 'LLLL', { locale: ru });
+    const formattedTitle = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${format(mStart, 'yyyy')}`;
+    const id = `month-${format(mStart, 'yyyy-MM')}`;
 
-    if (booking) {
-      pet = petsStore.getPetById(booking.petId) || {
-        id: booking.petId,
-        name: 'Питомец',
-        type: 'cat',
-        color: '#FFD6A5',
-        textColor: '#693B00',
-        avatar: '🐾',
-      };
-      isStart = dateString === booking.startDate;
-      isEnd = dateString === booking.endDate;
-    }
+    list.push({
+      id,
+      year: mStart.getFullYear(),
+      monthIndex: mStart.getMonth(),
+      date: mStart,
+      title: formattedTitle,
+      isCurrentMonth: offset === 0,
+      paddingStart,
+      days: monthDays,
+    });
+  }
 
-    return {
-      date,
-      dateString,
-      dayNumber: date.getDate(),
-      isCurrentMonth: isSameMonth(date, props.currentDate),
-      isToday: isToday(date),
-      isPast: isBefore(dayStart, startOfDay(new Date())),
-      booking,
-      pet,
-      isStart,
-      isEnd,
-    };
-  });
+  return list;
 });
 
 // Selection range checks
@@ -109,7 +151,6 @@ function isDayInSelectedRange(dateStr: string): boolean {
   return dateStr >= bookingsStore.selectionStart && dateStr <= bookingsStore.selectionEnd;
 }
 
-// Calculate days in selected range
 const selectedDaysCount = computed(() => {
   if (!bookingsStore.selectionStart) return 0;
   if (!bookingsStore.selectionEnd) return 1;
@@ -120,8 +161,8 @@ const selectedDaysCount = computed(() => {
 });
 
 // Handling clicks on a day cell
-function handleDayClick(day: CalendarDay, event: MouseEvent) {
-  // If clicking on an empty unbooked day -> selection mode for new booking
+function handleDayClick(day: MonthDay, event: MouseEvent) {
+  // If clicking on an unbooked day -> selection mode for new booking
   if (!day.booking || !day.pet) {
     activeTooltip.value = null;
     bookingsStore.handleDateClick(day.dateString);
@@ -171,109 +212,152 @@ function confirmCreateBooking() {
     emit('create-booking', { start, end });
   }
 }
+
+// Scroll to today's month
+function scrollToToday(smooth = true) {
+  nextTick(() => {
+    const currentId = `month-${format(new Date(), 'yyyy-MM')}`;
+    const el = document.getElementById(currentId);
+    if (el) {
+      el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    }
+  });
+}
+
+onMounted(() => {
+  // Initial jump to current month
+  setTimeout(() => {
+    scrollToToday(false);
+  }, 100);
+});
+
+defineExpose({
+  scrollToToday,
+});
 </script>
 
 <template>
-  <div class="flex flex-col flex-1 max-w-lg mx-auto w-full px-2 sm:px-4 py-2 relative pb-28" @click="closeTooltip">
-    <!-- Days of week Header -->
-    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 mb-1 text-center">
-      <div
-        v-for="(day, index) in weekDays"
-        :key="day"
-        class="text-xs font-bold py-1 select-none"
-        :class="index >= 5 ? 'text-cat-500 font-extrabold' : 'text-slate-500'"
+  <div
+    class="flex-1 overflow-y-auto overscroll-contain scroll-smooth px-2 sm:px-4 py-3 relative pb-32"
+    @click="closeTooltip"
+  >
+    <div class="max-w-lg mx-auto space-y-6">
+      <!-- Month Sections in Vertical Continuous Slider / Stream -->
+      <section
+        v-for="m in monthsList"
+        :key="m.id"
+        :id="m.id"
+        class="bg-white/80 p-2 sm:p-3 rounded-3xl border border-cat-100 shadow-cute scroll-mt-28 transition-all"
       >
-        {{ day }}
-      </div>
-    </div>
+        <!-- Month Header Banner -->
+        <div class="flex items-center justify-between px-2 pt-1 pb-2.5 mb-1 border-b border-cat-100/60">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm sm:text-base font-black text-slate-800 tracking-tight">
+              {{ m.title }}
+            </h3>
+            <span
+              v-if="m.isCurrentMonth"
+              class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-cat-100 text-cat-700 border border-cat-200"
+            >
+              Текущий месяц 🐾
+            </span>
+          </div>
+          <span class="text-xs text-slate-400 font-bold">
+            {{ m.days.length }} дн.
+          </span>
+        </div>
 
-    <!-- Calendar Month Grid (Equal Aspect Ratio Squares) -->
-    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 bg-white/70 p-1.5 sm:p-2.5 rounded-3xl border border-cat-100 shadow-cute">
-      <div
-        v-for="day in calendarDays"
-        :key="day.dateString"
-        @click="(e) => handleDayClick(day, e)"
-        class="aspect-square rounded-xl sm:rounded-2xl flex flex-col justify-between p-1 sm:p-1.5 transition-all select-none cursor-pointer border relative overflow-hidden group shadow-xs active:scale-95"
-        :style="day.booking && day.pet ? {
-          backgroundColor: day.pet.color,
-          borderColor: day.pet.color,
-          color: day.pet.textColor || '#2D1537',
-        } : {}"
-        :class="[
-          // When day has booking: fully colored square
-          day.booking && day.pet
-            ? 'shadow-sm font-bold ring-offset-1'
-            : // Free day: within selection range
-              isDayInSelectedRange(day.dateString)
-              ? 'bg-cat-200 border-cat-400 text-cat-800 shadow-inner ring-2 ring-cat-300'
-              : isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)
-                ? 'bg-cat-300 border-cat-500 text-white font-black ring-2 ring-cat-400'
-                : // Unbooked regular day
-                  day.isCurrentMonth
-                    ? 'bg-white border-cat-100/70 text-slate-700 hover:border-cat-300 hover:bg-cat-50/50'
-                    : 'bg-cat-50/40 border-cat-50 text-slate-300 opacity-50',
-          // Active ring if tooltip open for this day
-          activeTooltip?.dayString === day.dateString ? 'ring-2 ring-cat-600 scale-102 z-10' : '',
-        ]"
-      >
-        <!-- Top bar: Day Number & Indicators -->
-        <div class="flex items-center justify-between w-full leading-none">
-          <span
-            class="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center text-[11px] sm:text-xs font-black rounded-full transition-transform"
+        <!-- Month Grid: 7 columns, perfect aspect-square days -->
+        <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
+          <!-- Empty Spacer cells before day 1 -->
+          <div
+            v-for="spacer in m.paddingStart"
+            :key="`spacer-${m.id}-${spacer}`"
+            class="aspect-square rounded-xl sm:rounded-2xl bg-cat-50/20 border border-transparent opacity-30 pointer-events-none"
+          />
+
+          <!-- Actual Month Days -->
+          <div
+            v-for="day in m.days"
+            :key="day.dateString"
+            @click="(e) => handleDayClick(day, e)"
+            class="aspect-square rounded-xl sm:rounded-2xl flex flex-col justify-between p-1 sm:p-1.5 transition-all select-none cursor-pointer border relative overflow-hidden group shadow-2xs active:scale-95"
+            :style="day.booking && day.pet ? {
+              backgroundColor: day.pet.color,
+              borderColor: day.pet.color,
+              color: day.pet.textColor || '#2D1537',
+            } : {}"
             :class="[
-              day.isToday && !day.booking
-                ? 'bg-cat-500 text-white shadow-xs scale-105'
-                : day.isToday && day.booking
-                  ? 'bg-black/20 text-current'
-                  : ''
+              // Booked Day: Entirely colored square
+              day.booking && day.pet
+                ? 'shadow-sm font-bold'
+                : // Free day: within selection range
+                  isDayInSelectedRange(day.dateString)
+                  ? 'bg-cat-200 border-cat-400 text-cat-800 shadow-inner ring-2 ring-cat-300'
+                  : isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)
+                    ? 'bg-cat-300 border-cat-500 text-white font-black ring-2 ring-cat-400'
+                    : // Normal unbooked day
+                      'bg-white border-cat-100/70 text-slate-700 hover:border-cat-300 hover:bg-cat-50/50',
+              // Active ring if tooltip open for this day
+              activeTooltip?.dayString === day.dateString ? 'ring-2 ring-cat-600 scale-102 z-10' : '',
             ]"
           >
-            {{ day.dayNumber }}
-          </span>
+            <!-- Top: Day Number & Indicators -->
+            <div class="flex items-center justify-between w-full leading-none">
+              <span
+                class="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center text-[11px] sm:text-xs font-black rounded-full"
+                :class="[
+                  day.isToday && !day.booking
+                    ? 'bg-cat-500 text-white shadow-xs scale-105'
+                    : day.isToday && day.booking
+                      ? 'bg-black/20 text-current'
+                      : ''
+                ]"
+              >
+                {{ day.dayNumber }}
+              </span>
 
-          <!-- Check-in / Check-out badge or Paw on today -->
-          <span v-if="day.isStart" class="text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
-            заезд
-          </span>
-          <span v-else-if="day.isEnd" class="text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
-            выезд
-          </span>
-          <span v-else-if="day.isToday" class="text-[10px] text-cat-500">🐾</span>
+              <span v-if="day.isStart" class="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
+                заезд
+              </span>
+              <span v-else-if="day.isEnd" class="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
+                выезд
+              </span>
+              <span v-else-if="day.isToday" class="text-[10px] text-cat-500">🐾</span>
+            </div>
+
+            <!-- Center: Pet Avatar (if booked) or Selection Marker -->
+            <div class="flex flex-col items-center justify-center flex-1 my-0.5 pointer-events-none">
+              <template v-if="day.booking && day.pet">
+                <span class="text-base sm:text-xl drop-shadow-xs leading-none transform group-hover:scale-110 transition-transform">
+                  {{ day.pet.avatar }}
+                </span>
+              </template>
+
+              <template v-else-if="isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)">
+                <span class="text-xs sm:text-sm font-black text-cat-600">✓</span>
+              </template>
+
+              <template v-else>
+                <span class="text-[10px] text-cat-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                  +
+                </span>
+              </template>
+            </div>
+
+            <!-- Bottom: Pet Name -->
+            <div class="w-full text-center pointer-events-none">
+              <p
+                v-if="day.booking && day.pet"
+                class="text-[9px] sm:text-[10px] font-extrabold truncate w-full leading-tight tracking-tight"
+              >
+                {{ day.pet.name }}
+              </p>
+              <span v-else class="h-2.5 block"></span>
+            </div>
+          </div>
         </div>
-
-        <!-- Center: Pet Avatar (if booked) or Selection Marker -->
-        <div class="flex flex-col items-center justify-center flex-1 my-0.5 pointer-events-none">
-          <!-- Booked Pet Avatar -->
-          <template v-if="day.booking && day.pet">
-            <span class="text-base sm:text-xl drop-shadow-xs leading-none transform group-hover:scale-110 transition-transform">
-              {{ day.pet.avatar }}
-            </span>
-          </template>
-
-          <!-- Free day in selection mode -->
-          <template v-else-if="isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)">
-            <span class="text-xs sm:text-sm font-black text-cat-600">✓</span>
-          </template>
-
-          <!-- Subtle plus icon on hover for free days -->
-          <template v-else-if="day.isCurrentMonth">
-            <span class="text-[10px] text-cat-300 opacity-0 group-hover:opacity-100 transition-opacity">
-              +
-            </span>
-          </template>
-        </div>
-
-        <!-- Bottom: Pet Name (strictly single pet!) -->
-        <div class="w-full text-center pointer-events-none">
-          <p
-            v-if="day.booking && day.pet"
-            class="text-[9px] sm:text-[10px] font-extrabold truncate w-full leading-tight tracking-tight"
-          >
-            {{ day.pet.name }}
-          </p>
-          <span v-else class="h-2.5 block"></span>
-        </div>
-      </div>
+      </section>
     </div>
 
     <!-- Selection Conflict Warning Banner -->
@@ -287,7 +371,7 @@ function confirmCreateBooking() {
     >
       <div
         v-if="bookingsStore.selectionConflictError"
-        class="mt-2 bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-2xl text-xs flex items-center justify-between gap-2 shadow-sm"
+        class="fixed top-28 inset-x-4 max-w-md mx-auto z-40 bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-2xl text-xs flex items-center justify-between gap-2 shadow-cute-lg"
       >
         <div class="flex items-center gap-2">
           <AlertTriangle class="w-4 h-4 text-amber-600 shrink-0" />
@@ -302,7 +386,7 @@ function confirmCreateBooking() {
       </div>
     </transition>
 
-    <!-- 1st Tap Tooltip: Floating Popover with Nickname & Prepayment -->
+    <!-- 1st Tap Tooltip: Cute Floating Popover with Nickname & Prepayment -->
     <transition
       enter-active-class="transition duration-150 ease-out transform"
       enter-from-class="opacity-0 scale-90 translate-y-1"

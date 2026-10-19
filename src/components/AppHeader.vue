@@ -1,18 +1,10 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, RefreshCw, PawPrint, Settings as SettingsIcon } from 'lucide-vue-next';
+import { RefreshCw, PawPrint, Settings as SettingsIcon, Calendar as CalendarIcon } from 'lucide-vue-next';
 import { useUpdaterStore } from '../stores/updater';
 import { useBookingsStore } from '../stores/bookings';
 import { usePetsStore } from '../stores/pets';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
-
-const props = defineProps<{
-  currentDate: Date;
-}>();
 
 const emit = defineEmits<{
-  (e: 'prev-month'): void;
-  (e: 'next-month'): void;
   (e: 'go-today'): void;
   (e: 'open-pets'): void;
   (e: 'open-settings'): void;
@@ -22,16 +14,11 @@ const updaterStore = useUpdaterStore();
 const bookingsStore = useBookingsStore();
 const petsStore = usePetsStore();
 
-function formatMonthYear(d: Date): string {
-  const monthStr = format(d, 'LLLL', { locale: ru });
-  const yearStr = format(d, 'yyyy');
-  // Capitalize first letter of month
-  return `${monthStr.charAt(0).toUpperCase() + monthStr.slice(1)} ${yearStr}`;
-}
+const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 </script>
 
 <template>
-  <header class="bg-white/80 backdrop-blur-md border-b border-cat-100 sticky top-0 z-30 pt-safe px-4 pb-3 shadow-sm transition-all">
+  <header class="bg-white/90 backdrop-blur-md border-b border-cat-100 sticky top-0 z-30 pt-safe px-3 sm:px-4 pb-2 shadow-xs transition-all">
     <!-- Top Row: Logo & Quick actions -->
     <div class="flex items-center justify-between gap-2 max-w-lg mx-auto">
       <!-- App Brand -->
@@ -55,22 +42,32 @@ function formatMonthYear(d: Date): string {
         </div>
       </div>
 
-      <!-- Action Icons (Update, Pets, Settings) -->
-      <div class="flex items-center gap-1">
+      <!-- Action Icons (Today button, Update, Pets, Settings) -->
+      <div class="flex items-center gap-1.5">
+        <!-- Quick Jump to Today -->
+        <button
+          @click="emit('go-today')"
+          class="px-2.5 py-1.5 rounded-xl bg-cat-100 hover:bg-cat-200 text-cat-700 font-bold text-xs flex items-center gap-1 border border-cat-200 active:scale-95 transition-all shadow-2xs"
+          title="Вернуться к текущему месяцу"
+        >
+          <CalendarIcon class="w-3.5 h-3.5 text-cat-500" />
+          <span>Сегодня</span>
+        </button>
+
         <!-- Update button with alert badge -->
         <button
           @click="updaterStore.checkForUpdates(true)"
           title="Проверить обновления"
           class="relative p-2 rounded-xl text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
         >
-          <RefreshCw class="w-5 h-5" :class="{ 'animate-spin': updaterStore.isChecking }" />
+          <RefreshCw class="w-4.5 h-4.5" :class="{ 'animate-spin': updaterStore.isChecking }" />
           <span
             v-if="updaterStore.hasUpdate"
-            class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full animate-ping"
+            class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full animate-ping"
           />
           <span
             v-if="updaterStore.hasUpdate"
-            class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"
+            class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full"
           />
         </button>
 
@@ -80,7 +77,7 @@ function formatMonthYear(d: Date): string {
           title="Питомцы"
           class="p-2 rounded-xl text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
         >
-          <PawPrint class="w-5 h-5" />
+          <PawPrint class="w-4.5 h-4.5" />
         </button>
 
         <!-- Settings button -->
@@ -89,43 +86,9 @@ function formatMonthYear(d: Date): string {
           title="Настройки"
           class="p-2 rounded-xl text-cat-600 hover:text-cat-700 hover:bg-cat-100/60 active:scale-90 transition-all"
         >
-          <SettingsIcon class="w-5 h-5" />
+          <SettingsIcon class="w-4.5 h-4.5" />
         </button>
       </div>
-    </div>
-
-    <!-- Month Navigation Bar -->
-    <div class="flex items-center justify-between max-w-lg mx-auto mt-2.5 pt-2 border-t border-cat-100/70">
-      <!-- Previous Month -->
-      <button
-        @click="emit('prev-month')"
-        class="w-9 h-9 rounded-xl flex items-center justify-center bg-cat-50 border border-cat-100 text-cat-600 hover:bg-cat-100 active:scale-90 transition-all"
-        aria-label="Предыдущий месяц"
-      >
-        <ChevronLeft class="w-5 h-5" />
-      </button>
-
-      <!-- Current Month and Quick-jump Today -->
-      <div class="flex items-center gap-2">
-        <h2 class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">
-          {{ formatMonthYear(props.currentDate) }}
-        </h2>
-        <button
-          @click="emit('go-today')"
-          class="px-2.5 py-1 text-xs font-semibold rounded-full bg-cat-100 hover:bg-cat-200 text-cat-700 border border-cat-200 active:scale-95 transition-all shadow-sm"
-        >
-          Сегодня
-        </button>
-      </div>
-
-      <!-- Next Month -->
-      <button
-        @click="emit('next-month')"
-        class="w-9 h-9 rounded-xl flex items-center justify-center bg-cat-50 border border-cat-100 text-cat-600 hover:bg-cat-100 active:scale-90 transition-all"
-        aria-label="Следующий месяц"
-      >
-        <ChevronRight class="w-5 h-5" />
-      </button>
     </div>
 
     <!-- Active Pet Filter Bar (if filtered) -->
@@ -143,6 +106,18 @@ function formatMonthYear(d: Date): string {
       >
         Сбросить
       </button>
+    </div>
+
+    <!-- Sticky Days of Week Header -->
+    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 max-w-lg mx-auto mt-2 text-center pt-1 border-t border-cat-100/60">
+      <div
+        v-for="(day, index) in weekDays"
+        :key="day"
+        class="text-[11px] sm:text-xs font-bold py-0.5 select-none"
+        :class="index >= 5 ? 'text-cat-500 font-extrabold' : 'text-slate-400'"
+      >
+        {{ day }}
+      </div>
     </div>
   </header>
 </template>
