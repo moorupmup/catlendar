@@ -50,7 +50,10 @@ export interface CalendarDay {
   isCurrentMonth: boolean;
   isToday: boolean;
   isPast: boolean;
-  bookings: CalendarDayBooking[];
+  booking?: Booking;
+  pet?: Pet;
+  isStart?: boolean;
+  isEnd?: boolean;
 }
 
 export interface ReleaseInfo {

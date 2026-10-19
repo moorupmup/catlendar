@@ -16,8 +16,8 @@ import {
 } from 'date-fns';
 import { useBookingsStore } from '../stores/bookings';
 import { usePetsStore } from '../stores/pets';
-import type { Booking, Pet, CalendarDay, CalendarDayBooking } from '../types';
-import { Plus, CalendarPlus, X, CheckCircle2, AlertCircle } from 'lucide-vue-next';
+import type { Booking, Pet, CalendarDay } from '../types';
+import { Plus, CalendarPlus, X, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-vue-next';
 
 const props = defineProps<{
   currentDate: Date;
@@ -42,7 +42,7 @@ const activeTooltip = ref<{
 
 const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-// Calculate all days to render in the month grid (including padding days from previous/next months)
+// Calculate all days to render in the month grid
 const calendarDays = computed<CalendarDay[]>(() => {
   const monthStart = startOfMonth(props.currentDate);
   const monthEnd = endOfMonth(props.currentDate);
@@ -52,44 +52,33 @@ const calendarDays = computed<CalendarDay[]>(() => {
   const rawDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   const activeBookings = bookingsStore.filteredBookings;
 
-  // Track vertical slot assignments so overlapping bookings stay in consistent rows across days
-  // We sort bookings by startDate to give stable top-to-bottom slots
-  const sortedBookings = [...activeBookings].sort((a, b) => a.startDate.localeCompare(b.startDate));
-
   return rawDays.map(date => {
     const dateString = format(date, 'yyyy-MM-dd');
     const dayStart = startOfDay(date);
 
-    // Find all bookings that cover this day
-    const dayBookings: CalendarDayBooking[] = [];
-
-    sortedBookings.forEach((b, index) => {
+    // Strictly 1 pet at home at a time! Find the booking covering this day
+    const booking = activeBookings.find(b => {
       const bStart = startOfDay(parseISO(b.startDate));
       const bEnd = startOfDay(parseISO(b.endDate));
-
-      if (isWithinInterval(dayStart, { start: bStart, end: bEnd })) {
-        const pet = petsStore.getPetById(b.petId) || {
-          id: b.petId,
-          name: 'Питомец',
-          type: 'cat',
-          color: '#FFCCD8',
-          avatar: '🐾',
-        };
-
-        const isStart = dateString === b.startDate;
-        const isEnd = dateString === b.endDate;
-        const isMiddle = !isStart && !isEnd;
-
-        dayBookings.push({
-          booking: b,
-          pet,
-          isStart,
-          isEnd,
-          isMiddle,
-          rowSlot: index % 3, // keep within visible max chips
-        });
-      }
+      return isWithinInterval(dayStart, { start: bStart, end: bEnd });
     });
+
+    let pet: Pet | undefined;
+    let isStart = false;
+    let isEnd = false;
+
+    if (booking) {
+      pet = petsStore.getPetById(booking.petId) || {
+        id: booking.petId,
+        name: 'Питомец',
+        type: 'cat',
+        color: '#FFD6A5',
+        textColor: '#693B00',
+        avatar: '🐾',
+      };
+      isStart = dateString === booking.startDate;
+      isEnd = dateString === booking.endDate;
+    }
 
     return {
       date,
@@ -98,7 +87,10 @@ const calendarDays = computed<CalendarDay[]>(() => {
       isCurrentMonth: isSameMonth(date, props.currentDate),
       isToday: isToday(date),
       isPast: isBefore(dayStart, startOfDay(new Date())),
-      bookings: dayBookings,
+      booking,
+      pet,
+      isStart,
+      isEnd,
     };
   });
 });
@@ -129,39 +121,23 @@ const selectedDaysCount = computed(() => {
 
 // Handling clicks on a day cell
 function handleDayClick(day: CalendarDay, event: MouseEvent) {
-  // If clicking on an empty area, handle date range selection
-  if (day.bookings.length === 0) {
+  // If clicking on an empty unbooked day -> selection mode for new booking
+  if (!day.booking || !day.pet) {
     activeTooltip.value = null;
     bookingsStore.handleDateClick(day.dateString);
     return;
   }
 
-  // If there are bookings on this day and tooltip is open for the same day, close it or advance
-  if (activeTooltip.value && activeTooltip.value.dayString === day.dateString) {
-    // Second click on the same day with tooltip open -> open details modal!
-    emit('select-booking', activeTooltip.value.booking);
-    activeTooltip.value = null;
-    return;
-  }
-
-  // Otherwise, if day has exactly 1 booking, show tooltip for it
-  const targetBooking = day.bookings[0];
-  showTooltipForBooking(targetBooking.booking, targetBooking.pet, day.dateString, event);
-}
-
-// Handle clicking on a specific booking bar chip
-function handleBookingClick(dayBooking: CalendarDayBooking, dayString: string, event: MouseEvent) {
-  event.stopPropagation();
-
+  // If clicked on an already booked day:
   // If tooltip already open for this exact booking -> 2nd tap opens detailed screen!
-  if (activeTooltip.value && activeTooltip.value.booking.id === dayBooking.booking.id) {
-    emit('select-booking', dayBooking.booking);
+  if (activeTooltip.value && activeTooltip.value.booking.id === day.booking.id) {
+    emit('select-booking', day.booking);
     activeTooltip.value = null;
     return;
   }
 
-  // 1st tap: Show tooltip with nickname, avatar, dates and prepayment status
-  showTooltipForBooking(dayBooking.booking, dayBooking.pet, dayString, event);
+  // 1st tap: Show cute tooltip
+  showTooltipForBooking(day.booking, day.pet, day.dateString, event);
 }
 
 function showTooltipForBooking(booking: Booking, pet: Pet, dayString: string, event: MouseEvent) {
@@ -200,93 +176,133 @@ function confirmCreateBooking() {
 <template>
   <div class="flex flex-col flex-1 max-w-lg mx-auto w-full px-2 sm:px-4 py-2 relative pb-28" @click="closeTooltip">
     <!-- Days of week Header -->
-    <div class="grid grid-cols-7 gap-1 mb-1 text-center">
+    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 mb-1 text-center">
       <div
         v-for="(day, index) in weekDays"
         :key="day"
-        class="text-xs font-bold py-1"
+        class="text-xs font-bold py-1 select-none"
         :class="index >= 5 ? 'text-cat-500 font-extrabold' : 'text-slate-500'"
       >
         {{ day }}
       </div>
     </div>
 
-    <!-- Calendar Month Grid -->
-    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 bg-white/70 p-1.5 sm:p-2 rounded-3xl border border-cat-100 shadow-cute">
+    <!-- Calendar Month Grid (Equal Aspect Ratio Squares) -->
+    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 bg-white/70 p-1.5 sm:p-2.5 rounded-3xl border border-cat-100 shadow-cute">
       <div
         v-for="day in calendarDays"
         :key="day.dateString"
         @click="(e) => handleDayClick(day, e)"
-        class="relative min-h-[64px] sm:min-h-[76px] rounded-2xl flex flex-col p-1 transition-all select-none cursor-pointer border"
+        class="aspect-square rounded-xl sm:rounded-2xl flex flex-col justify-between p-1 sm:p-1.5 transition-all select-none cursor-pointer border relative overflow-hidden group shadow-xs active:scale-95"
+        :style="day.booking && day.pet ? {
+          backgroundColor: day.pet.color,
+          borderColor: day.pet.color,
+          color: day.pet.textColor || '#2D1537',
+        } : {}"
         :class="[
-          // Current vs adjacent months
-          day.isCurrentMonth ? 'bg-white' : 'bg-cat-50/40 text-slate-300 opacity-60',
-          // Selected range styling
-          isDayInSelectedRange(day.dateString)
-            ? 'bg-cat-100/90 border-cat-400 shadow-inner'
-            : isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)
-              ? 'bg-cat-200 border-cat-500 ring-2 ring-cat-400'
-              : 'border-cat-50 hover:border-cat-200 hover:bg-cat-50/60',
+          // When day has booking: fully colored square
+          day.booking && day.pet
+            ? 'shadow-sm font-bold ring-offset-1'
+            : // Free day: within selection range
+              isDayInSelectedRange(day.dateString)
+              ? 'bg-cat-200 border-cat-400 text-cat-800 shadow-inner ring-2 ring-cat-300'
+              : isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)
+                ? 'bg-cat-300 border-cat-500 text-white font-black ring-2 ring-cat-400'
+                : // Unbooked regular day
+                  day.isCurrentMonth
+                    ? 'bg-white border-cat-100/70 text-slate-700 hover:border-cat-300 hover:bg-cat-50/50'
+                    : 'bg-cat-50/40 border-cat-50 text-slate-300 opacity-50',
+          // Active ring if tooltip open for this day
+          activeTooltip?.dayString === day.dateString ? 'ring-2 ring-cat-600 scale-102 z-10' : '',
         ]"
       >
-        <!-- Day Number Header -->
-        <div class="flex items-center justify-between mb-0.5">
+        <!-- Top bar: Day Number & Indicators -->
+        <div class="flex items-center justify-between w-full leading-none">
           <span
-            class="w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full transition-transform"
+            class="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center text-[11px] sm:text-xs font-black rounded-full transition-transform"
             :class="[
-              day.isToday
-                ? 'bg-cat-500 text-white shadow-cute scale-105 font-black ring-2 ring-cat-200'
-                : day.isCurrentMonth
-                  ? 'text-slate-700'
-                  : 'text-slate-400'
+              day.isToday && !day.booking
+                ? 'bg-cat-500 text-white shadow-xs scale-105'
+                : day.isToday && day.booking
+                  ? 'bg-black/20 text-current'
+                  : ''
             ]"
           >
             {{ day.dayNumber }}
           </span>
 
-          <!-- Tiny paw icon for today -->
-          <span v-if="day.isToday" class="text-[10px] text-cat-500">🐾</span>
+          <!-- Check-in / Check-out badge or Paw on today -->
+          <span v-if="day.isStart" class="text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
+            заезд
+          </span>
+          <span v-else-if="day.isEnd" class="text-[9px] font-black uppercase tracking-tighter opacity-80 bg-black/10 px-1 py-0.5 rounded">
+            выезд
+          </span>
+          <span v-else-if="day.isToday" class="text-[10px] text-cat-500">🐾</span>
         </div>
 
-        <!-- Bookings Bar Slots (Continuous Range Bars) -->
-        <div class="flex flex-col gap-1 mt-0.5 flex-1 overflow-hidden">
-          <div
-            v-for="bDay in day.bookings.slice(0, 3)"
-            :key="bDay.booking.id"
-            @click="(e) => handleBookingClick(bDay, day.dateString, e)"
-            class="h-5 text-[10px] font-bold flex items-center px-1 transition-all shadow-xs cursor-pointer select-none truncate"
-            :style="{
-              backgroundColor: bDay.pet.color,
-              color: bDay.pet.textColor || '#2D1537',
-            }"
-            :class="[
-              // Start day cap
-              bDay.isStart ? 'rounded-l-lg ml-0.5 font-extrabold shadow-sm' : '-ml-1',
-              // End day cap
-              bDay.isEnd ? 'rounded-r-lg mr-0.5' : '-mr-1',
-              // Active highlight if tooltip is showing for this booking
-              activeTooltip?.booking.id === bDay.booking.id ? 'ring-2 ring-cat-600 scale-105 z-10' : '',
-            ]"
-            :title="`${bDay.pet.name} (${bDay.booking.startDate} — ${bDay.booking.endDate})`"
-          >
-            <!-- Show pet avatar and name on start date or on Monday wrap-around -->
-            <span v-if="bDay.isStart || day.date.getDay() === 1" class="flex items-center gap-0.5 truncate">
-              <span class="text-[11px] leading-none">{{ bDay.pet.avatar }}</span>
-              <span class="truncate tracking-tight">{{ bDay.pet.name }}</span>
+        <!-- Center: Pet Avatar (if booked) or Selection Marker -->
+        <div class="flex flex-col items-center justify-center flex-1 my-0.5 pointer-events-none">
+          <!-- Booked Pet Avatar -->
+          <template v-if="day.booking && day.pet">
+            <span class="text-base sm:text-xl drop-shadow-xs leading-none transform group-hover:scale-110 transition-transform">
+              {{ day.pet.avatar }}
             </span>
-            <!-- Simple colored strip dot on middle/end days to keep it clean -->
-            <span v-else class="w-1.5 h-1.5 rounded-full opacity-60" :style="{ backgroundColor: bDay.pet.textColor || '#2D1537' }"></span>
-          </div>
+          </template>
 
-          <!-- Indicator if more than 3 bookings on a day -->
-          <span v-if="day.bookings.length > 3" class="text-[9px] font-bold text-cat-600 text-center leading-none">
-            +{{ day.bookings.length - 3 }} еще
-          </span>
+          <!-- Free day in selection mode -->
+          <template v-else-if="isDaySelectedStart(day.dateString) || isDaySelectedEnd(day.dateString)">
+            <span class="text-xs sm:text-sm font-black text-cat-600">✓</span>
+          </template>
+
+          <!-- Subtle plus icon on hover for free days -->
+          <template v-else-if="day.isCurrentMonth">
+            <span class="text-[10px] text-cat-300 opacity-0 group-hover:opacity-100 transition-opacity">
+              +
+            </span>
+          </template>
+        </div>
+
+        <!-- Bottom: Pet Name (strictly single pet!) -->
+        <div class="w-full text-center pointer-events-none">
+          <p
+            v-if="day.booking && day.pet"
+            class="text-[9px] sm:text-[10px] font-extrabold truncate w-full leading-tight tracking-tight"
+          >
+            {{ day.pet.name }}
+          </p>
+          <span v-else class="h-2.5 block"></span>
         </div>
       </div>
     </div>
 
-    <!-- 1st Tap Tooltip: Cute Floating Popover with Nickname & Prepayment -->
+    <!-- Selection Conflict Warning Banner -->
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 -translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="bookingsStore.selectionConflictError"
+        class="mt-2 bg-amber-50 border border-amber-300 text-amber-900 p-2.5 rounded-2xl text-xs flex items-center justify-between gap-2 shadow-sm"
+      >
+        <div class="flex items-center gap-2">
+          <AlertTriangle class="w-4 h-4 text-amber-600 shrink-0" />
+          <span class="font-bold">{{ bookingsStore.selectionConflictError }}</span>
+        </div>
+        <button
+          @click="bookingsStore.selectionConflictError = null"
+          class="text-amber-600 hover:text-amber-800 p-1"
+        >
+          <X class="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </transition>
+
+    <!-- 1st Tap Tooltip: Floating Popover with Nickname & Prepayment -->
     <transition
       enter-active-class="transition duration-150 ease-out transform"
       enter-from-class="opacity-0 scale-90 translate-y-1"
@@ -298,21 +314,21 @@ function confirmCreateBooking() {
       <div
         v-if="activeTooltip"
         @click.stop="openDetailedFromTooltip"
-        class="fixed z-40 bg-white/95 backdrop-blur-md rounded-2xl p-2.5 shadow-cute-lg border border-cat-200 cursor-pointer max-w-[210px] transform -translate-x-1/2 -translate-y-full hover:scale-105 transition-all"
+        class="fixed z-40 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-cute-lg border border-cat-200 cursor-pointer max-w-[210px] transform -translate-x-1/2 -translate-y-full hover:scale-105 transition-all"
         :style="{ left: `${activeTooltip.x}px`, top: `${activeTooltip.y}px` }"
       >
         <!-- Arrow pointing down -->
         <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b border-r border-cat-200 rotate-45"></div>
 
-        <div class="flex items-center gap-2 mb-1">
+        <div class="flex items-center gap-2 mb-1.5">
           <div
-            class="w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-inner"
+            class="w-8 h-8 rounded-xl flex items-center justify-center text-base shadow-inner border border-white"
             :style="{ backgroundColor: activeTooltip.pet.color }"
           >
             {{ activeTooltip.pet.avatar }}
           </div>
           <div class="truncate">
-            <h4 class="text-xs font-extrabold text-slate-800 truncate">
+            <h4 class="text-xs font-black text-slate-800 truncate">
               {{ activeTooltip.pet.name }}
             </h4>
             <span class="text-[10px] text-slate-500 block truncate">
@@ -321,10 +337,10 @@ function confirmCreateBooking() {
           </div>
         </div>
 
-        <div class="text-[11px] text-slate-600 bg-cat-50/70 p-1.5 rounded-lg border border-cat-100 mb-1.5 space-y-0.5">
+        <div class="text-[11px] text-slate-600 bg-cat-50/70 p-2 rounded-xl border border-cat-100 mb-1.5 space-y-0.5">
           <div class="flex justify-between">
             <span class="text-slate-400">Сроки:</span>
-            <span class="font-semibold text-slate-700">
+            <span class="font-bold text-slate-800">
               {{ activeTooltip.booking.startDate.slice(5) }} — {{ activeTooltip.booking.endDate.slice(5) }}
             </span>
           </div>

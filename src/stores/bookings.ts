@@ -8,13 +8,16 @@ function generateInitialBookings(): Booking[] {
   const y = now.getFullYear();
   const m = now.getMonth();
 
-  // Create demo dates for current month
-  const d1 = new Date(y, m, 3);
-  const d2 = new Date(y, m, 9);
-  const d3 = new Date(y, m, 7);
+  // Non-overlapping demo dates (strictly 1 pet at home at a time)
+  // Period 1: days 2..6 (Персик)
+  const d1 = new Date(y, m, 2);
+  const d2 = new Date(y, m, 6);
+  // Period 2: days 8..14 (Луна)
+  const d3 = new Date(y, m, 8);
   const d4 = new Date(y, m, 14);
-  const d5 = new Date(y, m, 18);
-  const d6 = new Date(y, m, 24);
+  // Period 3: days 17..23 (Майло)
+  const d5 = new Date(y, m, 17);
+  const d6 = new Date(y, m, 23);
 
   return [
     {
@@ -23,9 +26,9 @@ function generateInitialBookings(): Booking[] {
       startDate: format(d1, 'yyyy-MM-dd'),
       endDate: format(d2, 'yyyy-MM-dd'),
       dailyRate: 900,
-      totalAmount: 6300,
-      prepayment: 3000,
-      isPaidInFull: false,
+      totalAmount: 4500,
+      prepayment: 4500,
+      isPaidInFull: true,
       owner: {
         name: 'Анна Смирнова',
         phone: '+7 (999) 123-45-67',
@@ -42,9 +45,9 @@ function generateInitialBookings(): Booking[] {
       startDate: format(d3, 'yyyy-MM-dd'),
       endDate: format(d4, 'yyyy-MM-dd'),
       dailyRate: 1000,
-      totalAmount: 8000,
-      prepayment: 8000,
-      isPaidInFull: true,
+      totalAmount: 7000,
+      prepayment: 3500,
+      isPaidInFull: false,
       owner: {
         name: 'Михаил Котов',
         phone: '+7 (921) 987-65-43',
@@ -83,22 +86,45 @@ export const useBookingsStore = defineStore('bookings', () => {
   // Selection state for creating new bookings by clicking calendar dates
   const selectionStart = ref<string | null>(null);
   const selectionEnd = ref<string | null>(null);
+  const selectionConflictError = ref<string | null>(null);
 
   // Active filter by pet ID (null = all pets)
   const filterPetId = ref<string | null>(null);
 
+  // Check if a list of bookings has any mutual overlaps
+  function hasAnyOverlaps(list: Booking[]): boolean {
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i];
+        const b = list[j];
+        if (a.startDate <= b.endDate && a.endDate >= b.startDate) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   function init() {
     const saved = localStorage.getItem('catlendar_bookings');
-    if (saved) {
+    const version = localStorage.getItem('catlendar_data_version');
+
+    if (saved && version === '2.0') {
       try {
-        bookings.value = JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && !hasAnyOverlaps(parsed)) {
+          bookings.value = parsed;
+          return;
+        }
       } catch (e) {
-        bookings.value = generateInitialBookings();
+        console.warn('Resetting corrupt bookings data');
       }
-    } else {
-      bookings.value = generateInitialBookings();
-      save();
     }
+
+    // Default or migrate to single-pet non-overlapping data
+    bookings.value = generateInitialBookings();
+    localStorage.setItem('catlendar_data_version', '2.0');
+    save();
   }
 
   function save() {
@@ -114,7 +140,27 @@ export const useBookingsStore = defineStore('bookings', () => {
     return bookings.value.find(b => b.id === id);
   }
 
+  // Find booking on a specific date (strictly only 1 can exist!)
+  function getBookingForDate(dateStr: string): Booking | undefined {
+    return bookings.value.find(b => b.startDate <= dateStr && b.endDate >= dateStr);
+  }
+
+  // Check if an interval [startDate, endDate] conflicts with any existing booking
+  function findConflictingBooking(startDate: string, endDate: string, excludeBookingId?: string): Booking | undefined {
+    return bookings.value.find(b => {
+      if (excludeBookingId && b.id === excludeBookingId) return false;
+      // Overlap condition: start1 <= end2 AND end1 >= start2
+      return b.startDate <= endDate && b.endDate >= startDate;
+    });
+  }
+
   function addBooking(bookingData: Omit<Booking, 'id' | 'createdAt'>): Booking {
+    // Enforce strictly 1 pet at home at a time
+    const conflict = findConflictingBooking(bookingData.startDate, bookingData.endDate);
+    if (conflict) {
+      throw new Error(`В этот период (${conflict.startDate} — ${conflict.endDate}) уже забронирована передержка! Одновременно может проживать только один питомец.`);
+    }
+
     const newBooking: Booking = {
       ...bookingData,
       id: `booking-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -128,10 +174,19 @@ export const useBookingsStore = defineStore('bookings', () => {
 
   function updateBooking(id: string, updates: Partial<Booking>) {
     const idx = bookings.value.findIndex(b => b.id === id);
-    if (idx !== -1) {
-      bookings.value[idx] = { ...bookings.value[idx], ...updates };
-      save();
+    if (idx === -1) return;
+
+    const current = bookings.value[idx];
+    const targetStart = updates.startDate || current.startDate;
+    const targetEnd = updates.endDate || current.endDate;
+
+    const conflict = findConflictingBooking(targetStart, targetEnd, id);
+    if (conflict) {
+      throw new Error(`Пересечение дат с существующей передержкой (${conflict.startDate} — ${conflict.endDate})! Одновременно может быть только один питомец.`);
     }
+
+    bookings.value[idx] = { ...current, ...updates };
+    save();
   }
 
   function deleteBooking(id: string) {
@@ -150,19 +205,34 @@ export const useBookingsStore = defineStore('bookings', () => {
     }
   }
 
-  // Selection range management
+  // Selection range management on free days
   function handleDateClick(dateStr: string) {
+    selectionConflictError.value = null;
+
+    // Check if the clicked date is already booked
+    if (getBookingForDate(dateStr)) {
+      return;
+    }
+
     if (!selectionStart.value || (selectionStart.value && selectionEnd.value)) {
       // First click: start new range
       selectionStart.value = dateStr;
       selectionEnd.value = null;
     } else {
       // Second click: finish range
-      if (dateStr < selectionStart.value) {
-        selectionEnd.value = selectionStart.value;
+      const rangeStart = dateStr < selectionStart.value ? dateStr : selectionStart.value;
+      const rangeEnd = dateStr < selectionStart.value ? selectionStart.value : dateStr;
+
+      // Crucial: check if there is any booked day between rangeStart and rangeEnd
+      const conflict = findConflictingBooking(rangeStart, rangeEnd);
+      if (conflict) {
+        selectionConflictError.value = `Диапазон пересекает занятые даты (${conflict.startDate} — ${conflict.endDate})! Выберите свободный интервал.`;
+        // Reset selection start to the newly clicked date
         selectionStart.value = dateStr;
+        selectionEnd.value = null;
       } else {
-        selectionEnd.value = dateStr;
+        selectionStart.value = rangeStart;
+        selectionEnd.value = rangeEnd;
       }
     }
   }
@@ -175,11 +245,13 @@ export const useBookingsStore = defineStore('bookings', () => {
   function clearSelection() {
     selectionStart.value = null;
     selectionEnd.value = null;
+    selectionConflictError.value = null;
   }
 
   // Export / Import
   function exportDataJSON(): string {
     return JSON.stringify({
+      version: '2.0',
       bookings: bookings.value,
       exportedAt: new Date().toISOString(),
     }, null, 2);
@@ -189,6 +261,10 @@ export const useBookingsStore = defineStore('bookings', () => {
     try {
       const data = JSON.parse(jsonString);
       if (Array.isArray(data.bookings)) {
+        if (hasAnyOverlaps(data.bookings)) {
+          alert('Ошибка: в импортируемом файле есть пересекающиеся передержки на один день!');
+          return false;
+        }
         bookings.value = data.bookings;
         save();
         return true;
@@ -207,7 +283,10 @@ export const useBookingsStore = defineStore('bookings', () => {
     filterPetId,
     selectionStart,
     selectionEnd,
+    selectionConflictError,
     getBookingById,
+    getBookingForDate,
+    findConflictingBooking,
     addBooking,
     updateBooking,
     deleteBooking,

@@ -124,6 +124,14 @@ function handleSave() {
     return;
   }
 
+  // Validate no overlapping bookings (strictly 1 pet at home at a time)
+  const conflict = bookingsStore.findConflictingBooking(startDate.value, endDate.value, props.editingBooking?.id);
+  if (conflict) {
+    const conflictingPet = petsStore.getPetById(conflict.petId)?.name || 'другой питомец';
+    errorMessage.value = `В эти даты (${conflict.startDate} — ${conflict.endDate}) уже живет ${conflictingPet}! Одновременно дома может находиться только один питомец.`;
+    return;
+  }
+
   const bookingPayload = {
     petId: petId.value,
     startDate: startDate.value,
@@ -141,23 +149,27 @@ function handleSave() {
     notes: notes.value.trim(),
   };
 
-  let savedBooking: Booking;
-  if (props.editingBooking) {
-    bookingsStore.updateBooking(props.editingBooking.id, bookingPayload);
-    savedBooking = { ...props.editingBooking, ...bookingPayload };
-  } else {
-    savedBooking = bookingsStore.addBooking(bookingPayload);
-    // Launch cute celebratory confetti
-    confetti({
-      particleCount: 40,
-      spread: 50,
-      origin: { y: 0.6 },
-      colors: ['#FF477E', '#FFB4A2', '#B7E4C7', '#A0C4FF']
-    });
-  }
+  try {
+    let savedBooking: Booking;
+    if (props.editingBooking) {
+      bookingsStore.updateBooking(props.editingBooking.id, bookingPayload);
+      savedBooking = { ...props.editingBooking, ...bookingPayload };
+    } else {
+      savedBooking = bookingsStore.addBooking(bookingPayload);
+      // Launch cute celebratory confetti
+      confetti({
+        particleCount: 40,
+        spread: 50,
+        origin: { y: 0.6 },
+        colors: ['#FF477E', '#FFB4A2', '#B7E4C7', '#A0C4FF']
+      });
+    }
 
-  emit('saved', savedBooking);
-  emit('close');
+    emit('saved', savedBooking);
+    emit('close');
+  } catch (err: any) {
+    errorMessage.value = err.message || 'Ошибка сохранения брони';
+  }
 }
 </script>
 
