@@ -55,8 +55,10 @@ const activeTooltip = ref<{
   booking: Booking;
   pet: Pet;
   dayString: string;
-  x: number;
-  y: number;
+  left: number;
+  top: number;
+  arrowLeft: number;
+  placement: 'above' | 'below';
 } | null>(null);
 
 // Generate vertical stream of months: 4 months in past to 14 months ahead (19 months)
@@ -185,12 +187,32 @@ function showTooltipForBooking(booking: Booking, pet: Pet, dayString: string, ev
   const target = event.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
 
+  const tooltipWidth = 230;
+  const pad = 12;
+  const cellCenterX = rect.left + rect.width / 2;
+
+  // Clamp horizontal position so tooltip stays within viewport
+  const desiredLeft = cellCenterX - tooltipWidth / 2;
+  const minLeft = pad;
+  const maxLeft = Math.max(pad, window.innerWidth - tooltipWidth - pad);
+  const left = Math.max(minLeft, Math.min(desiredLeft, maxLeft));
+
+  // Arrow position relative to the tooltip box
+  const arrowLeft = Math.max(20, Math.min(cellCenterX - left, tooltipWidth - 20));
+
+  // Determine vertical placement: above cell if space >= 220px, otherwise below cell
+  const isAbove = rect.top >= 220;
+  const placement = isAbove ? 'above' : 'below';
+  const top = isAbove ? Math.round(rect.top - 8) : Math.round(rect.bottom + 8);
+
   activeTooltip.value = {
     booking,
     pet,
     dayString,
-    x: Math.min(Math.max(16, rect.left + rect.width / 2), window.innerWidth - 180),
-    y: Math.max(70, rect.top - 8),
+    left,
+    top,
+    arrowLeft,
+    placement,
   };
 }
 
@@ -240,6 +262,7 @@ defineExpose({
   <div
     class="flex-1 overflow-y-auto overscroll-contain scroll-smooth px-2 sm:px-4 py-3 relative pb-32"
     @click="closeTooltip"
+    @scroll.passive="closeTooltip"
   >
     <div class="max-w-lg mx-auto space-y-6">
       <!-- Month Sections in Vertical Continuous Slider / Stream -->
@@ -280,7 +303,7 @@ defineExpose({
           <div
             v-for="day in m.days"
             :key="day.dateString"
-            @click="(e) => handleDayClick(day, e)"
+            @click.stop="handleDayClick(day, $event)"
             class="aspect-square rounded-lg flex flex-col justify-between p-1 transition-all select-none cursor-pointer border relative overflow-hidden group shadow-2xs active:scale-95"
             :style="day.booking && day.pet ? {
               backgroundColor: day.pet.color,
@@ -395,24 +418,34 @@ defineExpose({
     <!-- 1st Tap Tooltip: Cute Floating Popover with Nickname & Prepayment -->
     <transition
       enter-active-class="transition duration-150 ease-out transform"
-      enter-from-class="opacity-0 scale-90 translate-y-1"
-      enter-to-class="opacity-100 scale-100 translate-y-0"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
       leave-active-class="transition duration-100 ease-in transform"
       leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-90"
+      leave-to-class="opacity-0 scale-95"
     >
       <div
         v-if="activeTooltip"
         @click.stop="openDetailedFromTooltip"
-        class="fixed z-40 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-cute-lg border border-cat-200 cursor-pointer max-w-[210px] transform -translate-x-1/2 -translate-y-full hover:scale-105 transition-all"
-        :style="{ left: `${activeTooltip.x}px`, top: `${activeTooltip.y}px` }"
+        class="fixed z-40 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-cute-lg border border-cat-200 cursor-pointer w-[230px] hover:scale-102 transition-all select-none"
+        :class="activeTooltip.placement === 'above' ? '-translate-y-full' : 'translate-y-0'"
+        :style="{ left: `${activeTooltip.left}px`, top: `${activeTooltip.top}px` }"
       >
-        <!-- Arrow pointing down -->
-        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-b border-r border-cat-200 rotate-45"></div>
+        <!-- Dynamic Arrow pointing to the exact day cell center -->
+        <div
+          v-if="activeTooltip.placement === 'above'"
+          class="absolute -bottom-2 w-3.5 h-3.5 bg-white border-b border-r border-cat-200"
+          :style="{ left: `${activeTooltip.arrowLeft}px`, transform: 'translateX(-50%) rotate(45deg)' }"
+        />
+        <div
+          v-else
+          class="absolute -top-2 w-3.5 h-3.5 bg-white border-t border-l border-cat-200"
+          :style="{ left: `${activeTooltip.arrowLeft}px`, transform: 'translateX(-50%) rotate(45deg)' }"
+        />
 
         <div class="flex items-center gap-2 mb-1.5">
           <div
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-base shadow-inner border border-white"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-base shadow-inner border border-white shrink-0"
             :style="{ backgroundColor: activeTooltip.pet.color }"
           >
             {{ activeTooltip.pet.avatar }}
@@ -447,7 +480,7 @@ defineExpose({
           </div>
         </div>
 
-        <div class="flex items-center justify-center gap-1 text-[10px] font-bold text-cat-600 animate-pulse">
+        <div class="flex items-center justify-center gap-1 text-[10px] font-bold text-cat-600">
           <span>Нажмите для деталей</span>
           <span>→</span>
         </div>

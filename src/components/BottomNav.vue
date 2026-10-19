@@ -23,7 +23,8 @@ const tabs = [
         v-for="tab in tabs"
         :key="tab.id"
         @click="emit('update:activeTab', tab.id)"
-        class="flex-1 py-1 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 touch-manipulation focus:outline-none"
+        class="flex-1 py-1 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 touch-manipulation select-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 active:outline-none"
+        style="-webkit-tap-highlight-color: transparent;"
         :class="activeTab === tab.id
           ? 'text-cat-600 font-extrabold'
           : 'text-slate-400 hover:text-slate-600 font-semibold'"
