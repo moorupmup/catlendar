@@ -6,7 +6,7 @@ import { FileOpener } from '@capacitor-community/file-opener';
 import type { ReleaseInfo } from '../types';
 
 export const useUpdaterStore = defineStore('updater', () => {
-  const currentVersion = ref('1.1.4');
+  const currentVersion = ref('1.1.5');
   const githubRepo = ref(localStorage.getItem('catlendar_github_repo') || 'moorupmup/catlendar');
   
   const isChecking = ref(false);

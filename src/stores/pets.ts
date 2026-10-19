@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Pet } from '../types';
+import { syncWidgetData } from '../services/widgetBridge';
 
 export const PASTEL_PET_COLORS = [
   { name: 'Персиковый', bg: '#FFD6A5', text: '#693B00' },
@@ -86,6 +87,7 @@ export const usePetsStore = defineStore('pets', () => {
 
   function save() {
     localStorage.setItem('catlendar_pets', JSON.stringify(pets.value));
+    syncWidgetData();
   }
 
   function getPetById(id: string): Pet | undefined {

@@ -4,4 +4,6 @@
     <string name="title_activity_main">Catlendar</string>
     <string name="package_name">com.catlendar.app</string>
     <string name="custom_url_scheme">com.catlendar.app</string>
+    <string name="widget_name">Календарь Catlendar</string>
+    <string name="widget_description">Календарь передержек на текущий месяц</string>
 </resources>

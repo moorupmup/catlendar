@@ -14,6 +14,7 @@ import SettingsModal from './components/SettingsModal.vue';
 import UpdateModal from './components/UpdateModal.vue';
 import { useUpdaterStore } from './stores/updater';
 import { useBookingsStore } from './stores/bookings';
+import { syncWidgetData } from './services/widgetBridge';
 import { Plus } from 'lucide-vue-next';
 
 const activeTab = ref<'calendar' | 'history' | 'pets'>('calendar');
@@ -146,6 +147,9 @@ function onKeydown(e: KeyboardEvent) {
 let backListener: { remove: () => void } | null = null;
 
 onMounted(async () => {
+  // Sync widget on app startup
+  syncWidgetData();
+
   // Silent check for updates in background
   updaterStore.checkForUpdates(false);
 

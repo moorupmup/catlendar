@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Booking } from '../types';
 import { format } from 'date-fns';
+import { syncWidgetData } from '../services/widgetBridge';
 
 function generateInitialBookings(): Booking[] {
   const now = new Date();
@@ -114,6 +115,7 @@ export const useBookingsStore = defineStore('bookings', () => {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && !hasAnyOverlaps(parsed)) {
           bookings.value = parsed;
+          syncWidgetData();
           return;
         }
       } catch (e) {
@@ -129,6 +131,7 @@ export const useBookingsStore = defineStore('bookings', () => {
 
   function save() {
     localStorage.setItem('catlendar_bookings', JSON.stringify(bookings.value));
+    syncWidgetData();
   }
 
   const filteredBookings = computed(() => {
