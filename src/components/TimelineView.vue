@@ -225,33 +225,34 @@ function getBalance(booking: Booking): number {
         </div>
 
         <!-- Timeline Items List -->
-        <div v-else class="relative space-y-3.5 before:absolute before:inset-0 before:left-[1.85rem] before:w-0.5 before:bg-cat-200 before:z-0">
+        <div v-else class="relative space-y-4 before:absolute before:top-6 before:bottom-6 before:left-[23px] before:w-0.5 before:bg-cat-200 before:z-0">
           <div
             v-for="item in filteredEvents"
             :key="item.id"
             @click="emit('select-booking', item.booking)"
             class="relative z-10 flex items-start gap-3 group cursor-pointer"
           >
-            <!-- Left Date & Icon Column -->
-            <div class="shrink-0 flex flex-col items-center w-14">
-              <!-- Date Badge -->
+            <!-- Left Date Cube & Icon Column -->
+            <div class="shrink-0 flex flex-col items-center w-12">
+              <!-- Date Cube (True square cube: 48x48px, rounded-lg) -->
               <div
-                class="w-13 py-1.5 rounded-lg flex flex-col items-center justify-center border text-center transition-all shadow-2xs"
+                class="w-12 h-12 rounded-lg flex flex-col items-center justify-center border text-center transition-all shadow-2xs shrink-0 select-none"
                 :class="item.isToday
                   ? 'bg-cat-500 border-cat-600 text-white shadow-cute'
-                  : 'bg-white border-cat-200 text-slate-700'"
+                  : 'bg-white border-cat-200 text-slate-700 hover:border-cat-300'"
               >
-                <span class="text-sm font-black leading-none">
+                <span class="text-base font-black leading-none">
                   {{ formatDayNumber(item.date) }}
                 </span>
                 <span
-                  class="text-[9px] font-black uppercase tracking-tight leading-none mt-0.5"
+                  class="text-[9.5px] font-black uppercase tracking-tight leading-none mt-0.5"
                   :class="item.isToday ? 'text-cat-100' : 'text-slate-400'"
                 >
                   {{ formatMonthShort(item.date) }}
                 </span>
                 <span
-                  class="text-[8px] font-extrabold uppercase leading-none mt-0.5 opacity-80"
+                  class="text-[8px] font-extrabold uppercase leading-none mt-0.5"
+                  :class="item.isToday ? 'text-cat-200' : 'text-slate-400/80'"
                 >
                   {{ formatWeekday(item.date) }}
                 </span>
@@ -259,7 +260,7 @@ function getBalance(booking: Booking): number {
 
               <!-- Node Icon on the vertical line -->
               <div
-                class="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center mt-1.5 shadow-2xs transition-transform group-hover:scale-110"
+                class="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center mt-2 shadow-2xs transition-transform group-hover:scale-110 shrink-0"
                 :class="item.type === 'check-in'
                   ? 'bg-emerald-500 text-white'
                   : 'bg-amber-500 text-white'"
