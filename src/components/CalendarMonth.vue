@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick } from 'vue';
+import { computed, ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import {
   startOfMonth,
   endOfMonth,
@@ -164,24 +164,76 @@ const selectedDaysCount = computed(() => {
 
 // Handling clicks on a day cell
 function handleDayClick(day: MonthDay, event: MouseEvent) {
+  // If a tooltip is already open:
+  if (activeTooltip.value) {
+    // If clicked on the exact same active day -> 2nd tap opens detailed screen!
+    if (activeTooltip.value.dayString === day.dateString) {
+      if (day.booking) {
+        emit('select-booking', day.booking);
+      }
+      activeTooltip.value = null;
+      return;
+    }
+
+    // If clicked ANY other day while tooltip is open:
+    // First dismiss the tooltip, do NOT select dates or open another tooltip!
+    activeTooltip.value = null;
+    return;
+  }
+
   // If clicking on an unbooked day -> selection mode for new booking
   if (!day.booking || !day.pet) {
-    activeTooltip.value = null;
     bookingsStore.handleDateClick(day.dateString);
     return;
   }
 
-  // If clicked on an already booked day:
-  // If tooltip already open for this exact booking -> 2nd tap opens detailed screen!
-  if (activeTooltip.value && activeTooltip.value.booking.id === day.booking.id) {
-    emit('select-booking', day.booking);
-    activeTooltip.value = null;
+  // 1st tap on booked day: Show cute tooltip
+  showTooltipForBooking(day.booking, day.pet, day.dateString, event);
+}
+
+const tooltipRef = ref<HTMLElement | null>(null);
+
+function handleGlobalCaptureClick(e: MouseEvent) {
+  if (!activeTooltip.value) return;
+
+  const target = e.target as Node | null;
+  if (!target) return;
+
+  // 1. If clicked inside the tooltip itself -> allow tooltip to handle it
+  if (tooltipRef.value && (tooltipRef.value === target || tooltipRef.value.contains(target))) {
     return;
   }
 
-  // 1st tap: Show cute tooltip
-  showTooltipForBooking(day.booking, day.pet, day.dateString, event);
+  // 2. If clicked inside the currently active day cell -> allow day cell to handle it
+  const activeDayEl = document.querySelector(`[data-day="${activeTooltip.value.dayString}"]`);
+  if (activeDayEl && (activeDayEl === target || activeDayEl.contains(target))) {
+    return;
+  }
+
+  // 3. Any click outside tooltip or active day:
+  // Intercept and swallow the event so other actions (date selection, buttons) are NOT triggered
+  e.stopPropagation();
+  e.preventDefault();
+  closeTooltip();
 }
+
+watch(activeTooltip, (newVal, oldVal) => {
+  if (newVal && !oldVal) {
+    // Tooltip just opened: attach capture listener on next tick to avoid catching the opening click
+    setTimeout(() => {
+      if (activeTooltip.value) {
+        window.addEventListener('click', handleGlobalCaptureClick, { capture: true });
+      }
+    }, 0);
+  } else if (!newVal && oldVal) {
+    // Tooltip closed: detach capture listener
+    window.removeEventListener('click', handleGlobalCaptureClick, { capture: true });
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleGlobalCaptureClick, { capture: true });
+});
 
 function showTooltipForBooking(booking: Booking, pet: Pet, dayString: string, event: MouseEvent) {
   const target = event.currentTarget as HTMLElement;
@@ -303,6 +355,7 @@ defineExpose({
           <div
             v-for="day in m.days"
             :key="day.dateString"
+            :data-day="day.dateString"
             @click.stop="handleDayClick(day, $event)"
             class="aspect-square rounded-lg flex flex-col justify-between p-1 transition-all select-none cursor-pointer border relative overflow-hidden group shadow-2xs active:scale-95"
             :style="day.booking && day.pet ? {
@@ -425,6 +478,7 @@ defineExpose({
       leave-to-class="opacity-0 scale-95"
     >
       <div
+        ref="tooltipRef"
         v-if="activeTooltip"
         @click.stop="openDetailedFromTooltip"
         class="fixed z-40 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-cute-lg border border-cat-200 cursor-pointer w-[230px] hover:scale-102 transition-all select-none"
