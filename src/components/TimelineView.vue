@@ -273,52 +273,30 @@ function getBalance(booking: Booking): number {
 
             <!-- Right: Content Card -->
             <div
-              class="flex-1 bg-white rounded-xl border border-cat-100 p-3 shadow-cute hover:border-cat-300 transition-all active:scale-[0.99] space-y-2"
+              class="flex-1 bg-white rounded-xl border border-cat-100 p-3 shadow-cute hover:border-cat-300 transition-all active:scale-[0.99] space-y-2.5"
               :class="{ 'ring-2 ring-cat-400/40': item.isToday }"
             >
-              <!-- Card Top Row: Type Badge + Pet Tag + Duration -->
-              <div class="flex items-center justify-between gap-1 flex-wrap">
-                <div class="flex items-center gap-1.5">
-                  <!-- Event type badge -->
-                  <span
-                    class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide border flex items-center gap-1"
-                    :class="item.type === 'check-in'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'"
-                  >
-                    <span>{{ item.type === 'check-in' ? 'Въезд' : 'Выезд' }}</span>
-                  </span>
-
-                  <!-- "Сегодня" indicator pill -->
-                  <span
-                    v-if="item.isToday"
-                    class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-cat-500 text-white animate-pulse"
-                  >
-                    Сегодня!
-                  </span>
+              <!-- Event Header: Description + Today Badge (No redundant badges!) -->
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h4 class="text-sm font-extrabold text-slate-800 flex items-center gap-1.5 leading-snug">
+                    <span>{{ item.type === 'check-in' ? 'Въезжает' : 'Выезжает' }}</span>
+                    <span class="text-cat-600">{{ item.pet?.name || 'Питомец' }}</span>
+                    <span v-if="item.pet" class="text-xs">{{ item.pet.avatar }}</span>
+                  </h4>
+                  <p class="text-xs text-slate-500 font-medium mt-0.5">
+                    <span class="text-slate-400">Хозяин(ка):</span>
+                    <span class="font-bold text-slate-700 ml-1">{{ item.booking.owner.name }}</span>
+                  </p>
                 </div>
 
-                <!-- Pet Badge with Pet's custom pastel color -->
-                <div
-                  v-if="item.pet"
-                  class="px-2 py-0.5 rounded-md text-xs font-black flex items-center gap-1 shadow-2xs border border-black/5"
-                  :style="{ backgroundColor: item.pet.color, color: item.pet.textColor || '#2D1537' }"
+                <!-- "Сегодня" indicator pill -->
+                <span
+                  v-if="item.isToday"
+                  class="px-2 py-0.5 rounded-md text-[10px] font-black bg-cat-500 text-white shrink-0 animate-pulse shadow-2xs"
                 >
-                  <span>{{ item.pet.avatar }}</span>
-                  <span>{{ item.pet.name }}</span>
-                </div>
-              </div>
-
-              <!-- Main Event Description (e.g. "Въезжает Кузя, хозяйка Светлана") -->
-              <div>
-                <h4 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-1">
-                  <span>{{ item.type === 'check-in' ? 'Въезжает' : 'Выезжает' }}</span>
-                  <span class="text-cat-600">{{ item.pet?.name || 'Питомец' }}</span>
-                </h4>
-                <p class="text-xs text-slate-600 font-medium mt-0.5">
-                  <span class="text-slate-400">Хозяин(ка):</span>
-                  <span class="font-bold text-slate-700 ml-1">{{ item.booking.owner.name }}</span>
-                </p>
+                  Сегодня!
+                </span>
               </div>
 
               <!-- Contacts Quick Row -->
