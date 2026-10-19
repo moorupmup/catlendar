@@ -96,7 +96,7 @@ function handleImport() {
               <img
                 src="/logo.svg"
                 alt="Catlendar Logo"
-                class="w-12 h-12 object-contain select-none"
+                class="h-12 w-auto object-contain select-none"
               />
               <div>
                 <h3 class="text-base font-extrabold text-slate-800 tracking-tight">

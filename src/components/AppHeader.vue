@@ -32,7 +32,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         <img
           src="/logo.svg"
           alt="Catlendar Logo"
-          class="w-8 h-8 object-contain transition-transform active:scale-95 select-none"
+          class="h-8 w-auto object-contain transition-transform active:scale-95 select-none"
         />
         <h1 class="text-xl font-black tracking-tight bg-gradient-to-r from-cat-600 via-cat-500 to-cat-400 bg-clip-text text-transparent">
           Catlendar
