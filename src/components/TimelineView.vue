@@ -105,8 +105,18 @@ const filteredEvents = computed(() => {
   // Filter tab
   if (currentFilter.value === 'upcoming') {
     list = list.filter(e => e.isToday || e.isFuture);
+    list = [...list].sort((a, b) => a.date.getTime() - b.date.getTime());
   } else if (currentFilter.value === 'past') {
     list = list.filter(e => e.isPast);
+    list = [...list].sort((a, b) => b.date.getTime() - a.date.getTime());
+  } else if (currentFilter.value === 'all') {
+    // Reverse chronological: from newest/today to past
+    list = [...list].sort((a, b) => {
+      const timeDiff = b.date.getTime() - a.date.getTime();
+      if (timeDiff !== 0) return timeDiff;
+      // On the same day: check-out first, then check-in
+      return a.type === 'check-out' ? -1 : 1;
+    });
   }
 
   // Pet store active filter (if filtered from pet list)
@@ -230,7 +240,10 @@ function getBalance(booking: Booking): number {
             v-for="item in filteredEvents"
             :key="item.id"
             @click="emit('select-booking', item.booking)"
-            class="relative z-10 flex items-start gap-3 group cursor-pointer"
+            class="relative z-10 flex items-start gap-3 group cursor-pointer transition-opacity"
+            :class="[
+              currentFilter === 'all' && item.isPast ? 'opacity-65 hover:opacity-95' : '',
+            ]"
           >
             <!-- Left Date Cube & Icon Column -->
             <div class="shrink-0 flex flex-col items-center w-12">
