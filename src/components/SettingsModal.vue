@@ -2,9 +2,9 @@
 import { ref } from 'vue';
 import { useUpdaterStore } from '../stores/updater';
 import { useBookingsStore } from '../stores/bookings';
-import { X, Settings, Github, Download, Upload, RefreshCw, ShieldCheck, Heart } from 'lucide-vue-next';
+import { X, Settings, Download, Upload, RefreshCw, Sparkles, CheckCircle, Heart, AlertCircle } from 'lucide-vue-next';
 
-const props = defineProps<{
+defineProps<{
   isOpen: boolean;
 }>();
 
@@ -15,18 +15,15 @@ const emit = defineEmits<{
 const updaterStore = useUpdaterStore();
 const bookingsStore = useBookingsStore();
 
-const repoInput = ref(updaterStore.githubRepo);
 const importText = ref('');
 const showImportArea = ref(false);
-const saveSuccess = ref(false);
 const importMessage = ref<string | null>(null);
+const checkedRecently = ref(false);
 
-function saveRepo() {
-  updaterStore.setGithubRepo(repoInput.value);
-  saveSuccess.value = true;
-  setTimeout(() => {
-    saveSuccess.value = false;
-  }, 2000);
+async function handleCheckUpdates() {
+  checkedRecently.value = false;
+  await updaterStore.checkForUpdates(true);
+  checkedRecently.value = true;
 }
 
 function handleExport() {
@@ -44,7 +41,7 @@ function handleImport() {
   if (!importText.value.trim()) return;
   const ok = bookingsStore.importDataJSON(importText.value);
   if (ok) {
-    importMessage.value = 'Данные успешно импортированы!';
+    importMessage.value = 'Данные успешно восстановлены! ✓';
     showImportArea.value = false;
     importText.value = '';
     setTimeout(() => {
@@ -77,9 +74,9 @@ function handleImport() {
         <!-- Modal Top Bar -->
         <div class="px-5 pt-4 pb-3 border-b border-cat-100 flex items-center justify-between bg-gradient-to-r from-cat-50 via-white to-cat-50">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2 py-0.5 rounded-md border border-cat-200 flex items-center gap-1.5">
+            <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2.5 py-1 rounded-md border border-cat-200 flex items-center gap-1.5">
               <Settings class="w-3.5 h-3.5 text-cat-600" />
-              <span>Настройки приложения</span>
+              <span>Настройки</span>
             </span>
           </div>
 
@@ -92,69 +89,88 @@ function handleImport() {
         </div>
 
         <div class="p-5 overflow-y-auto space-y-4">
-          <!-- Notification msg -->
-          <div v-if="importMessage" class="p-3 rounded-xl text-xs font-bold bg-cat-100 text-cat-700 border border-cat-200">
-            {{ importMessage }}
-          </div>
-
-          <!-- Section 1: GitHub Repository & In-App Updates -->
-          <div class="bg-white p-3.5 rounded-xl border border-cat-100 shadow-cute space-y-3">
-            <div class="flex items-center gap-2">
-              <Github class="w-4 h-4 text-cat-600" />
-              <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider">
-                Обновления через GitHub
-              </h4>
-            </div>
-
-            <p class="text-xs text-slate-500 leading-relaxed font-medium">
-              Приложение проверяет наличие новых версий APK в релизах вашего репозитория.
-            </p>
-
-            <div class="space-y-1.5">
-              <label class="block text-[11px] font-bold text-slate-500">
-                Репозиторий на GitHub (owner/repo):
-              </label>
-              <div class="flex gap-2">
-                <input
-                  v-model="repoInput"
-                  type="text"
-                  placeholder="напр., username/catlendar"
-                  class="flex-1 bg-cat-50/50 border border-cat-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
-                />
-                <button
-                  @click="saveRepo"
-                  class="px-3.5 py-2 rounded-lg bg-cat-100 text-cat-700 font-bold text-xs hover:bg-cat-200 border border-cat-200 transition-all"
-                >
-                  {{ saveSuccess ? 'Сохранено! ✓' : 'Сохранить' }}
-                </button>
+          <!-- App Info & Clean Update Section -->
+          <div class="bg-white p-4 rounded-xl border border-cat-100 shadow-cute space-y-3.5">
+            <!-- App Identity: Logo, Title, Version -->
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-cat-400 to-cat-200 p-0.5 shadow-xs flex items-center justify-center">
+                <img src="/logo.svg" alt="Catlendar Logo" class="w-10 h-10 rounded-lg object-contain" />
+              </div>
+              <div>
+                <h3 class="text-base font-extrabold text-slate-800 tracking-tight">
+                  Catlendar
+                </h3>
+                <p class="text-xs text-slate-500 font-medium">
+                  Текущая версия: v{{ updaterStore.currentVersion }}
+                </p>
               </div>
             </div>
 
-            <button
-              @click="updaterStore.checkForUpdates(true)"
-              class="w-full py-2.5 rounded-lg bg-cat-500 text-white font-bold text-xs hover:bg-cat-600 active:scale-98 transition-all flex items-center justify-center gap-2 shadow-xs"
+            <!-- New Version Message (shown if update is available) -->
+            <div
+              v-if="updaterStore.hasUpdate && updaterStore.latestRelease"
+              class="bg-gradient-to-tr from-cat-50 to-cream-50 border border-cat-200 p-3.5 rounded-lg space-y-1.5"
             >
-              <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': updaterStore.isChecking }" />
-              <span>Проверить обновление сейчас</span>
-            </button>
-          </div>
-
-          <!-- Section 2: Keystore & Static Signature Info -->
-          <div class="bg-gradient-to-tr from-cream-50 to-cat-50/60 p-3.5 rounded-xl border border-cat-200 space-y-2">
-            <div class="flex items-center gap-2 text-cat-700 font-bold text-xs">
-              <ShieldCheck class="w-4 h-4 text-emerald-600" />
-              <span>Статичный ключ подписи Keystore</span>
+              <div class="flex items-center gap-1.5 text-xs font-black text-cat-700">
+                <Sparkles class="w-4 h-4 text-cat-500" />
+                <span>Доступно обновление: {{ updaterStore.latestRelease.tagName }}!</span>
+              </div>
+              <p v-if="updaterStore.latestRelease.body" class="text-[11px] text-slate-600 font-medium line-clamp-3 whitespace-pre-line">
+                {{ updaterStore.latestRelease.body }}
+              </p>
             </div>
-            <p class="text-[11px] text-slate-600 leading-relaxed font-medium">
-              В проект включён постоянный релизный ключ подписи (<code class="bg-white/80 px-1 py-0.5 rounded border border-cat-200 text-cat-700">release.keystore</code>) и конфигурация в Gradle. Все билды на GitHub Actions имеют гарантированно одинаковую подпись, что позволяет обновлять приложение без ошибок совместимости.
-            </p>
+
+            <!-- Status message if already up to date -->
+            <div
+              v-else-if="checkedRecently && !updaterStore.hasUpdate && !updaterStore.errorMessage"
+              class="bg-emerald-50 border border-emerald-200 text-emerald-700 p-2.5 rounded-lg text-xs font-bold flex items-center gap-2"
+            >
+              <CheckCircle class="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>У вас установлена последняя версия!</span>
+            </div>
+
+            <!-- Error message if check failed -->
+            <div
+              v-if="updaterStore.errorMessage"
+              class="bg-red-50 border border-red-200 text-red-600 p-2.5 rounded-lg text-xs font-medium flex items-center gap-2"
+            >
+              <AlertCircle class="w-4 h-4 text-red-500 shrink-0" />
+              <span>{{ updaterStore.errorMessage }}</span>
+            </div>
+
+            <!-- Action Button: "Обновить" if update available, otherwise "Проверить обновления" -->
+            <div>
+              <button
+                v-if="updaterStore.hasUpdate"
+                @click="updaterStore.downloadAndInstall"
+                :disabled="updaterStore.isDownloading"
+                class="w-full py-2.5 rounded-lg bg-cat-500 text-white font-bold text-xs hover:bg-cat-600 active:scale-98 transition-all flex items-center justify-center gap-2 shadow-xs disabled:opacity-60"
+              >
+                <Download class="w-4 h-4" :class="{ 'animate-bounce': updaterStore.isDownloading }" />
+                <span>{{ updaterStore.isDownloading ? 'Загрузка обновления...' : 'Обновить' }}</span>
+              </button>
+
+              <button
+                v-else
+                @click="handleCheckUpdates"
+                :disabled="updaterStore.isChecking"
+                class="w-full py-2.5 rounded-lg bg-cat-100 text-cat-700 font-bold text-xs hover:bg-cat-200 active:scale-98 transition-all flex items-center justify-center gap-2 border border-cat-200 disabled:opacity-60"
+              >
+                <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': updaterStore.isChecking }" />
+                <span>{{ updaterStore.isChecking ? 'Проверяем...' : 'Обновить' }}</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Section 3: Backup & Restore -->
+          <!-- Section 2: Backup & Restore (JSON) -->
           <div class="bg-white p-3.5 rounded-xl border border-cat-100 shadow-cute space-y-3">
             <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider">
-              Резервная копия данных (JSON)
+              Резервная копия данных
             </h4>
+
+            <div v-if="importMessage" class="p-2.5 rounded-lg text-xs font-bold bg-cat-100 text-cat-700 border border-cat-200">
+              {{ importMessage }}
+            </div>
 
             <div class="grid grid-cols-2 gap-2">
               <button
@@ -174,12 +190,12 @@ function handleImport() {
               </button>
             </div>
 
-            <!-- Import input area -->
+            <!-- Import textarea -->
             <div v-if="showImportArea" class="space-y-2 pt-2 border-t border-cat-100">
               <textarea
                 v-model="importText"
                 rows="3"
-                placeholder="Вставьте JSON резервной копии сюда..."
+                placeholder="Вставьте JSON резервной копии..."
                 class="w-full bg-cat-50/40 border border-cat-200 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400 font-mono"
               ></textarea>
               <button
