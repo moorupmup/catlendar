@@ -259,7 +259,7 @@ defineExpose({
               v-if="m.isCurrentMonth"
               class="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-cat-100 text-cat-700 border border-cat-200"
             >
-              Текущий месяц 🐾
+              Текущий месяц
             </span>
           </div>
           <span class="text-xs text-slate-400 font-bold">
@@ -302,16 +302,18 @@ defineExpose({
               activeTooltip?.dayString === day.dateString ? 'ring-2 ring-cat-600 scale-102 z-10' : '',
             ]"
           >
-            <!-- Top: Day Number (left) & Avatar Emoji (right) -->
+            <!-- Top: Day Number (left, lighter weight) & Avatar Emoji (right) -->
             <div class="flex items-center justify-between w-full leading-none">
               <span
-                class="text-[11px] sm:text-xs font-black transition-transform"
+                class="transition-transform"
                 :class="[
                   day.isToday && !day.booking
-                    ? 'w-4.5 h-4.5 flex items-center justify-center bg-cat-500 text-white rounded shadow-xs text-[10px]'
+                    ? 'w-4.5 h-4.5 flex items-center justify-center bg-cat-500 text-white rounded shadow-xs text-[10px] font-bold'
                     : day.isToday && day.booking
-                      ? 'px-1 py-0.5 bg-black/20 text-current rounded text-[10px]'
-                      : ''
+                      ? 'px-1 py-0.5 bg-black/20 text-current rounded text-[10px] font-bold'
+                      : day.booking
+                        ? 'text-[10.5px] sm:text-[11px] font-semibold opacity-75'
+                        : 'text-[11px] sm:text-xs font-semibold text-slate-600'
                 ]"
               >
                 {{ day.dayNumber }}
@@ -320,7 +322,7 @@ defineExpose({
               <!-- Top-right: Pet Avatar Emoji (compact and cute) -->
               <span
                 v-if="day.booking && day.pet"
-                class="text-xs sm:text-sm drop-shadow-2xs leading-none transform group-hover:scale-110 transition-transform"
+                class="text-[11px] sm:text-xs drop-shadow-2xs leading-none transform group-hover:scale-110 transition-transform"
                 :title="day.pet.name"
               >
                 {{ day.pet.avatar }}
@@ -328,11 +330,14 @@ defineExpose({
               <span v-else-if="day.isToday" class="text-[9px] text-cat-500">🐾</span>
             </div>
 
-            <!-- Center: Pet Nickname (fully visible, bold, centered!) -->
-            <div class="flex flex-col items-center justify-center flex-1 my-0.5 pointer-events-none w-full px-0.5">
+            <!-- Center: Pet Nickname (Bold font-black, visually dominant over day number) -->
+            <div
+              class="flex flex-col items-center justify-center flex-1 pointer-events-none w-full px-0.5"
+              :class="(day.isStart || day.isEnd) ? 'pb-2' : ''"
+            >
               <template v-if="day.booking && day.pet">
                 <p
-                  class="text-[10px] sm:text-[11px] font-black truncate w-full text-center leading-tight tracking-tight"
+                  class="text-[9.5px] sm:text-[10.5px] font-black truncate w-full text-center leading-tight tracking-tighter"
                 >
                   {{ day.pet.name }}
                 </p>
@@ -349,21 +354,12 @@ defineExpose({
               </template>
             </div>
 
-            <!-- Bottom: Status badge (заезд / выезд) -->
-            <div class="w-full text-center pointer-events-none leading-none">
-              <span
-                v-if="day.isStart"
-                class="inline-block text-[8px] font-black uppercase tracking-tighter bg-black/15 px-1 py-0.5 rounded"
-              >
-                заезд
-              </span>
-              <span
-                v-else-if="day.isEnd"
-                class="inline-block text-[8px] font-black uppercase tracking-tighter bg-black/15 px-1 py-0.5 rounded"
-              >
-                выезд
-              </span>
-              <span v-else class="h-2 block"></span>
+            <!-- Bottom: Pinned check-in / check-out ribbon (zero clipping!) -->
+            <div
+              v-if="day.booking && (day.isStart || day.isEnd)"
+              class="absolute bottom-0 inset-x-0 bg-black/15 text-[7.5px] sm:text-[8px] font-black uppercase tracking-wider text-center py-0.5 leading-none pointer-events-none select-none"
+            >
+              {{ day.isStart && day.isEnd ? '1 день' : day.isStart ? 'Въезд' : 'Выезд' }}
             </div>
           </div>
         </div>
