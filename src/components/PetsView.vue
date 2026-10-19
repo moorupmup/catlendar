@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { usePetsStore, PASTEL_PET_COLORS } from '../stores/pets';
 import { useBookingsStore } from '../stores/bookings';
 import type { Pet, PetType } from '../types';
@@ -12,6 +12,8 @@ import {
   Filter,
   Check,
   X,
+  Eye,
+  EyeOff,
 } from 'lucide-vue-next';
 
 const emit = defineEmits<{
@@ -20,6 +22,15 @@ const emit = defineEmits<{
 
 const petsStore = usePetsStore();
 const bookingsStore = useBookingsStore();
+
+type PetTabFilter = 'active' | 'all' | 'hidden';
+const currentFilter = ref<PetTabFilter>('active');
+
+const displayedPets = computed(() => {
+  if (currentFilter.value === 'active') return petsStore.activePets;
+  if (currentFilter.value === 'hidden') return petsStore.hiddenPets;
+  return petsStore.pets;
+});
 
 const isEditorOpen = ref(false);
 const editingPetId = ref<string | null>(null);
@@ -31,6 +42,7 @@ const petAvatar = ref('🐱');
 const petColor = ref(PASTEL_PET_COLORS[0].bg);
 const petTextColor = ref(PASTEL_PET_COLORS[0].text);
 const petNotes = ref('');
+const petIsActive = ref(true);
 
 const avatarOptions = ['🐱', '😸', '🐶', '🐕', '🐰', '🐹', '🦜', '🐾', '✨', '🦊', '🐼', '🐨'];
 
@@ -51,6 +63,7 @@ function startCreate() {
   petColor.value = nextColor.bg;
   petTextColor.value = nextColor.text;
   petNotes.value = '';
+  petIsActive.value = true;
   editingPetId.value = null;
   isEditorOpen.value = true;
 }
@@ -63,6 +76,7 @@ function startEdit(pet: Pet) {
   petColor.value = pet.color;
   petTextColor.value = pet.textColor || '#2D1537';
   petNotes.value = pet.notes || '';
+  petIsActive.value = pet.isActive !== false;
   editingPetId.value = pet.id;
   isEditorOpen.value = true;
 }
@@ -84,6 +98,7 @@ function savePet() {
       color: petColor.value,
       textColor: petTextColor.value,
       notes: petNotes.value.trim(),
+      isActive: petIsActive.value,
     });
   } else {
     petsStore.addPet({
@@ -94,6 +109,7 @@ function savePet() {
       color: petColor.value,
       textColor: petTextColor.value,
       notes: petNotes.value.trim(),
+      isActive: petIsActive.value,
     });
   }
 
@@ -145,7 +161,7 @@ function getPetTypeLabel(type: PetType): string {
             Питомцы на передержке
           </h2>
           <p class="text-xs text-slate-500 font-medium">
-            Всего сохранено: {{ petsStore.pets.length }}
+            Всего: {{ petsStore.pets.length }} · Активных: {{ petsStore.activePets.length }}
           </p>
         </div>
 
@@ -155,6 +171,31 @@ function getPetTypeLabel(type: PetType): string {
         >
           <Plus class="w-4 h-4" />
           <span>Добавить</span>
+        </button>
+      </div>
+
+      <!-- Filter tabs: Активные / Все / Скрытые -->
+      <div class="max-w-lg mx-auto flex items-center gap-1.5 bg-cat-100/60 p-1 rounded-lg text-xs font-bold mt-2.5">
+        <button
+          @click="currentFilter = 'active'"
+          class="flex-1 py-1 rounded-md transition-all text-center"
+          :class="currentFilter === 'active' ? 'bg-white text-cat-700 shadow-2xs' : 'text-slate-500 hover:text-slate-700'"
+        >
+          Активные ({{ petsStore.activePets.length }})
+        </button>
+        <button
+          @click="currentFilter = 'all'"
+          class="flex-1 py-1 rounded-md transition-all text-center"
+          :class="currentFilter === 'all' ? 'bg-white text-cat-700 shadow-2xs' : 'text-slate-500 hover:text-slate-700'"
+        >
+          Все ({{ petsStore.pets.length }})
+        </button>
+        <button
+          @click="currentFilter = 'hidden'"
+          class="flex-1 py-1 rounded-md transition-all text-center"
+          :class="currentFilter === 'hidden' ? 'bg-white text-cat-700 shadow-2xs' : 'text-slate-500 hover:text-slate-700'"
+        >
+          Скрытые ({{ petsStore.hiddenPets.length }})
         </button>
       </div>
 
@@ -184,7 +225,7 @@ function getPetTypeLabel(type: PetType): string {
       <div class="max-w-lg mx-auto space-y-3">
         <!-- Empty State -->
         <div
-          v-if="petsStore.pets.length === 0"
+          v-if="displayedPets.length === 0"
           class="bg-white rounded-xl border border-cat-100 p-8 text-center space-y-3 my-6 shadow-cute"
         >
           <div class="w-14 h-14 rounded-2xl bg-cat-100 text-cat-500 mx-auto flex items-center justify-center text-3xl">
@@ -192,13 +233,16 @@ function getPetTypeLabel(type: PetType): string {
           </div>
           <div>
             <h4 class="text-sm font-extrabold text-slate-800">
-              Список питомцев пуст
+              {{ currentFilter === 'hidden' ? 'Скрытых питомцев нет' : currentFilter === 'active' ? 'Нет активных питомцев' : 'Список питомцев пуст' }}
             </h4>
             <p class="text-xs text-slate-500 mt-1">
-              Добавьте первого питомца, чтобы закреплять за ним даты в календаре
+              {{ currentFilter === 'hidden'
+                ? 'Вы можете скрыть питомца, чтобы он не загромождал список выбора при создании броней'
+                : 'Добавьте первого питомца или включите ранее скрытого' }}
             </p>
           </div>
           <button
+            v-if="currentFilter !== 'hidden'"
             @click="startCreate"
             class="px-4 py-2 rounded-lg bg-cat-500 hover:bg-cat-600 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
           >
@@ -209,10 +253,13 @@ function getPetTypeLabel(type: PetType): string {
 
         <!-- Pet Card -->
         <div
-          v-for="pet in petsStore.pets"
+          v-for="pet in displayedPets"
           :key="pet.id"
-          class="bg-white rounded-xl border border-cat-100 p-3.5 shadow-cute space-y-3 transition-all hover:border-cat-300"
-          :class="{ 'ring-2 ring-cat-400': bookingsStore.filterPetId === pet.id }"
+          class="rounded-xl border border-cat-100 p-3.5 shadow-cute space-y-3 transition-all hover:border-cat-300"
+          :class="[
+            bookingsStore.filterPetId === pet.id ? 'ring-2 ring-cat-400' : '',
+            pet.isActive === false ? 'opacity-80 border-dashed bg-slate-50/70' : 'bg-white'
+          ]"
         >
           <div class="flex items-start justify-between gap-3">
             <!-- Left: Avatar + Details -->
@@ -225,12 +272,18 @@ function getPetTypeLabel(type: PetType): string {
               </div>
 
               <div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                   <h3 class="text-base font-extrabold text-slate-800 tracking-tight">
                     {{ pet.name }}
                   </h3>
                   <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-cat-100 text-cat-700 border border-cat-200">
                     {{ getPetTypeLabel(pet.type) }}
+                  </span>
+                  <span
+                    v-if="pet.isActive === false"
+                    class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200/80 text-slate-600 border border-slate-300"
+                  >
+                    Скрыт
                   </span>
                 </div>
                 <p v-if="pet.breed" class="text-xs text-slate-500 font-medium">
@@ -270,6 +323,20 @@ function getPetTypeLabel(type: PetType): string {
             </button>
 
             <div class="flex items-center gap-1.5">
+              <!-- Toggle Active / Hidden Quick Button -->
+              <button
+                @click="petsStore.togglePetActive(pet.id)"
+                class="px-2.5 py-1.5 rounded-lg border active:scale-90 transition-all text-xs flex items-center gap-1 font-bold shadow-2xs"
+                :class="pet.isActive !== false
+                  ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100 bg-white border-slate-200'
+                  : 'text-cat-700 bg-cat-100 hover:bg-cat-200 border-cat-200'"
+                :title="pet.isActive !== false ? 'Скрыть из быстрого выбора' : 'Вернуть в активные'"
+              >
+                <EyeOff v-if="pet.isActive !== false" class="w-3.5 h-3.5 text-slate-400" />
+                <Eye v-else class="w-3.5 h-3.5 text-cat-600" />
+                <span>{{ pet.isActive !== false ? 'Скрыть' : 'Включить' }}</span>
+              </button>
+
               <button
                 @click="startEdit(pet)"
                 class="p-1.5 rounded-lg text-slate-500 hover:text-cat-700 hover:bg-cat-50 border border-transparent hover:border-cat-200 active:scale-90 transition-all"
@@ -428,6 +495,25 @@ function getPetTypeLabel(type: PetType): string {
                 placeholder="Любимый корм, время выгула, лекарства..."
                 class="w-full bg-cat-50/50 border border-cat-200 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-cat-400"
               ></textarea>
+            </div>
+
+            <!-- Active / Hidden Switch -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-cat-50/80 border border-cat-100">
+              <div>
+                <span class="block text-xs font-bold text-slate-800">Активный питомец</span>
+                <span class="block text-[11px] text-slate-500">Отображать в быстром выборе при создании броней</span>
+              </div>
+              <button
+                type="button"
+                @click="petIsActive = !petIsActive"
+                class="w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 focus:outline-none shrink-0"
+                :class="petIsActive ? 'bg-cat-500' : 'bg-slate-300'"
+              >
+                <div
+                  class="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform"
+                  :class="petIsActive ? 'translate-x-5' : 'translate-x-0'"
+                ></div>
+              </button>
             </div>
           </div>
 

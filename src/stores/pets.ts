@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { Pet } from '../types';
 
 export const PASTEL_PET_COLORS = [
@@ -25,6 +25,7 @@ const DEFAULT_PETS: Pet[] = [
     textColor: '#693B00',
     avatar: '🐱',
     notes: 'Любит паштеты с кроликом, чесать за ушком утром.',
+    isActive: true,
   },
   {
     id: 'pet-2',
@@ -35,6 +36,7 @@ const DEFAULT_PETS: Pet[] = [
     textColor: '#4A156B',
     avatar: '😸',
     notes: 'Спокойная, пуглива к резким звукам. Корм Royal Canin.',
+    isActive: true,
   },
   {
     id: 'pet-3',
@@ -45,6 +47,7 @@ const DEFAULT_PETS: Pet[] = [
     textColor: '#15522E',
     avatar: '🐶',
     notes: 'Выгул 3 раза в день, давать витаминки в 10:00.',
+    isActive: true,
   },
   {
     id: 'pet-4',
@@ -55,11 +58,16 @@ const DEFAULT_PETS: Pet[] = [
     textColor: '#6D0B26',
     avatar: '🐰',
     notes: 'Свежее сено всегда в доступе, любит сушеные яблочки.',
+    isActive: true,
   }
 ];
 
 export const usePetsStore = defineStore('pets', () => {
   const pets = ref<Pet[]>([]);
+
+  // Computed views for active and hidden pets
+  const activePets = computed(() => pets.value.filter(p => p.isActive !== false));
+  const hiddenPets = computed(() => pets.value.filter(p => p.isActive === false));
 
   // Load from LocalStorage or initialize with defaults
   function init() {
@@ -88,6 +96,7 @@ export const usePetsStore = defineStore('pets', () => {
     const newPet: Pet = {
       ...petData,
       id: `pet-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      isActive: petData.isActive !== false,
     };
     pets.value.push(newPet);
     save();
@@ -98,6 +107,14 @@ export const usePetsStore = defineStore('pets', () => {
     const idx = pets.value.findIndex(p => p.id === id);
     if (idx !== -1) {
       pets.value[idx] = { ...pets.value[idx], ...updates };
+      save();
+    }
+  }
+
+  function togglePetActive(id: string) {
+    const pet = pets.value.find(p => p.id === id);
+    if (pet) {
+      pet.isActive = pet.isActive === false ? true : false;
       save();
     }
   }
@@ -118,9 +135,12 @@ export const usePetsStore = defineStore('pets', () => {
 
   return {
     pets,
+    activePets,
+    hiddenPets,
     getPetById,
     addPet,
     updatePet,
+    togglePetActive,
     deletePet,
     getNextColor,
   };

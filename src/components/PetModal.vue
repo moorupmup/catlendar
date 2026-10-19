@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import type { Pet, PetType } from '../types';
 import { usePetsStore, PASTEL_PET_COLORS } from '../stores/pets';
 import { useBookingsStore } from '../stores/bookings';
-import { X, Plus, Trash2, Edit2, Check, Filter, PawPrint } from 'lucide-vue-next';
+import { X, Plus, Trash2, Edit2, Check, Filter, PawPrint, Eye, EyeOff } from 'lucide-vue-next';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -26,6 +26,7 @@ const petAvatar = ref('🐱');
 const petColor = ref(PASTEL_PET_COLORS[0].bg);
 const petTextColor = ref(PASTEL_PET_COLORS[0].text);
 const petNotes = ref('');
+const petIsActive = ref(true);
 
 const avatarOptions = ['🐱', '😸', '🐶', '🐕', '🐰', '🐹', '🦜', '🐾', '✨'];
 
@@ -38,6 +39,7 @@ function startCreate() {
   petColor.value = nextColor.bg;
   petTextColor.value = nextColor.text;
   petNotes.value = '';
+  petIsActive.value = true;
   editingPetId.value = null;
   isCreating.value = true;
 }
@@ -50,6 +52,7 @@ function startEdit(pet: Pet) {
   petColor.value = pet.color;
   petTextColor.value = pet.textColor || '#2D1537';
   petNotes.value = pet.notes || '';
+  petIsActive.value = pet.isActive !== false;
   editingPetId.value = pet.id;
   isCreating.value = true;
 }
@@ -71,6 +74,7 @@ function savePet() {
       color: petColor.value,
       textColor: petTextColor.value,
       notes: petNotes.value.trim(),
+      isActive: petIsActive.value,
     });
   } else {
     petsStore.addPet({
@@ -81,6 +85,7 @@ function savePet() {
       color: petColor.value,
       textColor: petTextColor.value,
       notes: petNotes.value.trim(),
+      isActive: petIsActive.value,
     });
   }
 
@@ -232,6 +237,25 @@ function removePet(pet: Pet) {
             ></textarea>
           </div>
 
+          <!-- Active / Hidden Switch -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-cat-50/80 border border-cat-100">
+            <div>
+              <span class="block text-xs font-bold text-slate-800">Активный питомец</span>
+              <span class="block text-[11px] text-slate-500">Отображать в быстром выборе при создании броней</span>
+            </div>
+            <button
+              type="button"
+              @click="petIsActive = !petIsActive"
+              class="w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 focus:outline-none shrink-0"
+              :class="petIsActive ? 'bg-cat-500' : 'bg-slate-300'"
+            >
+              <div
+                class="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform"
+                :class="petIsActive ? 'translate-x-5' : 'translate-x-0'"
+              ></div>
+            </button>
+          </div>
+
           <div class="flex justify-end gap-2 pt-2">
             <button
               @click="isCreating = false"
@@ -254,11 +278,12 @@ function removePet(pet: Pet) {
             v-for="pet in petsStore.pets"
             :key="pet.id"
             class="p-3 rounded-xl border flex items-center justify-between gap-3 transition-all"
+            :class="pet.isActive === false ? 'opacity-80 border-dashed' : ''"
             :style="{ backgroundColor: `${pet.color}25`, borderColor: pet.color }"
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-inner border border-white"
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-inner border border-white shrink-0"
                 :style="{ backgroundColor: pet.color }"
               >
                 {{ pet.avatar }}
@@ -267,6 +292,13 @@ function removePet(pet: Pet) {
                 <div class="flex items-center gap-2">
                   <h4 class="text-sm font-extrabold text-slate-800">{{ pet.name }}</h4>
                   <span
+                    v-if="pet.isActive === false"
+                    class="text-[9px] font-bold text-slate-500 bg-white/80 px-1.5 py-0.5 rounded border border-slate-200 leading-none"
+                  >
+                    скрыт
+                  </span>
+                  <span
+                    v-else
                     class="w-2.5 h-2.5 rounded-full"
                     :style="{ backgroundColor: pet.color }"
                   />
@@ -278,8 +310,17 @@ function removePet(pet: Pet) {
               </div>
             </div>
 
-            <!-- Pet Actions: Filter on calendar, Edit, Delete -->
-            <div class="flex items-center gap-1">
+            <!-- Pet Actions: Active Toggle, Filter on calendar, Edit, Delete -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button
+                @click="petsStore.togglePetActive(pet.id)"
+                class="p-2 rounded-lg border transition-all text-xs flex items-center gap-1"
+                :class="pet.isActive !== false ? 'bg-white text-slate-400 border-cat-200 hover:text-slate-600 hover:bg-cat-50' : 'bg-cat-100 text-cat-700 border-cat-200 font-bold'"
+                :title="pet.isActive !== false ? 'Скрыть из быстрого выбора' : 'Включить в активные'"
+              >
+                <EyeOff v-if="pet.isActive !== false" class="w-3.5 h-3.5" />
+                <Eye v-else class="w-3.5 h-3.5" />
+              </button>
               <button
                 @click="toggleFilter(pet.id)"
                 class="p-2 rounded-lg border transition-all text-xs flex items-center gap-1"

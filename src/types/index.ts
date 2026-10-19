@@ -9,6 +9,7 @@ export interface Pet {
   textColor?: string;      // Цвет текста для контрастности
   avatar: string;          // Эмодзи питомца (🐱, 🐶, 🐰 и т.д.)
   notes?: string;          // Привычки, рацион, аллергии
+  isActive?: boolean;      // Активен ли питомец (false = скрыт/выключен)
 }
 
 export interface Owner {

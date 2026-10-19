@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue';
 import type { Booking } from '../types';
 import { usePetsStore } from '../stores/pets';
 import { useBookingsStore } from '../stores/bookings';
-import { X, Calendar, User, CreditCard, Sparkles, Plus, AlertCircle } from 'lucide-vue-next';
+import { X, Calendar, User, CreditCard, Sparkles, Plus, AlertCircle, Eye, EyeOff } from 'lucide-vue-next';
 import confetti from 'canvas-confetti';
 
 const props = defineProps<{
@@ -20,6 +20,21 @@ const emit = defineEmits<{
 
 const petsStore = usePetsStore();
 const bookingsStore = useBookingsStore();
+
+const showHiddenPets = ref(false);
+
+const selectablePets = computed(() => {
+  if (showHiddenPets.value) {
+    return petsStore.pets;
+  }
+  if (props.editingBooking) {
+    const editPet = petsStore.getPetById(props.editingBooking.petId);
+    if (editPet && editPet.isActive === false) {
+      return [...petsStore.activePets, editPet];
+    }
+  }
+  return petsStore.activePets;
+});
 
 const petId = ref('');
 const startDate = ref('');
@@ -43,6 +58,7 @@ watch(
   (open) => {
     if (open) {
       errorMessage.value = null;
+      showHiddenPets.value = false;
       if (props.editingBooking) {
         // Edit mode
         petId.value = props.editingBooking.petId;
@@ -60,7 +76,9 @@ watch(
         notes.value = props.editingBooking.notes || '';
       } else {
         // Create mode
-        petId.value = petsStore.pets.length > 0 ? petsStore.pets[0].id : '';
+        petId.value = petsStore.activePets.length > 0
+          ? petsStore.activePets[0].id
+          : (petsStore.pets.length > 0 ? petsStore.pets[0].id : '');
         startDate.value = props.initialRange?.start || new Date().toISOString().slice(0, 10);
         endDate.value = props.initialRange?.end || startDate.value;
         dailyRate.value = 1000;
@@ -218,9 +236,24 @@ function handleSave() {
           <!-- Section 1: Choose Pet -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <label class="text-xs font-black text-slate-700 uppercase tracking-wider">
-                Выберите питомца
-              </label>
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-black text-slate-700 uppercase tracking-wider">
+                  Выберите питомца
+                </label>
+                <!-- Toggle to reveal hidden pets if any exist -->
+                <button
+                  v-if="petsStore.hiddenPets.length > 0"
+                  type="button"
+                  @click="showHiddenPets = !showHiddenPets"
+                  class="text-[11px] font-bold text-slate-400 hover:text-cat-600 flex items-center gap-1 transition-colors active:scale-95 px-1.5 py-0.5 rounded bg-cat-50 border border-cat-100"
+                  :title="showHiddenPets ? 'Показывать только активных' : 'Показать всех скрытых питомцев'"
+                >
+                  <EyeOff v-if="showHiddenPets" class="w-3 h-3 text-slate-500" />
+                  <Eye v-else class="w-3 h-3 text-slate-400" />
+                  <span>{{ showHiddenPets ? 'Только активные' : `Скрытые (${petsStore.hiddenPets.length})` }}</span>
+                </button>
+              </div>
+
               <button
                 type="button"
                 @click="emit('open-create-pet')"
@@ -231,15 +264,40 @@ function handleSave() {
               </button>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- Empty state if no selectable pets -->
+            <div
+              v-if="selectablePets.length === 0"
+              class="bg-cat-50/60 border border-dashed border-cat-200 rounded-xl p-4 text-center space-y-1.5"
+            >
+              <p class="text-xs text-slate-500 font-medium">Нет активных питомцев для выбора</p>
+              <button
+                v-if="petsStore.hiddenPets.length > 0"
+                type="button"
+                @click="showHiddenPets = true"
+                class="text-xs font-bold text-cat-600 hover:text-cat-700 underline"
+              >
+                Показать скрытых питомцев ({{ petsStore.hiddenPets.length }})
+              </button>
+            </div>
+
+            <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div
-                v-for="p in petsStore.pets"
+                v-for="p in selectablePets"
                 :key="p.id"
                 @click="petId = p.id"
-                class="p-2.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center select-none"
-                :class="petId === p.id ? 'border-cat-500 bg-cat-50 shadow-cute scale-102 font-extrabold' : 'border-cat-100 hover:border-cat-200 bg-white'"
+                class="p-2.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center text-center select-none relative"
+                :class="[
+                  petId === p.id ? 'border-cat-500 bg-cat-50 shadow-cute scale-102 font-extrabold' : 'border-cat-100 hover:border-cat-200 bg-white',
+                  p.isActive === false ? 'opacity-75 border-dashed bg-slate-50/60' : ''
+                ]"
                 :style="petId === p.id ? { borderColor: p.color } : {}"
               >
+                <span
+                  v-if="p.isActive === false"
+                  class="absolute top-1 right-1 text-[8px] font-bold text-slate-400 bg-slate-200/80 px-1 py-0.5 rounded leading-none"
+                >
+                  скрыт
+                </span>
                 <span class="text-2xl mb-1">{{ p.avatar }}</span>
                 <span class="text-xs text-slate-800 font-bold truncate max-w-full">{{ p.name }}</span>
                 <span class="text-[10px] text-slate-400 truncate max-w-full">{{ p.breed || 'Питомец' }}</span>
