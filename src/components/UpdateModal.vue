@@ -109,7 +109,7 @@ const updaterStore = useUpdaterStore();
         </div>
 
         <!-- Bottom Bar -->
-        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-between">
+        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-between pb-[max(1rem,env(safe-area-inset-bottom,16px))]">
           <span class="text-[10px] text-slate-400 truncate max-w-[200px]">
             Репозиторий: {{ updaterStore.githubRepo }}
           </span>

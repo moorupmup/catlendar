@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { App as CapApp } from '@capacitor/app';
 import type { Booking } from './types';
 import AppHeader from './components/AppHeader.vue';
 import CalendarMonth from './components/CalendarMonth.vue';
@@ -16,6 +17,7 @@ import { Plus } from 'lucide-vue-next';
 
 const activeTab = ref<'calendar' | 'history' | 'pets'>('calendar');
 const calendarRef = ref<InstanceType<typeof CalendarMonth> | null>(null);
+const petModalRef = ref<InstanceType<typeof PetModal> | null>(null);
 
 const isDetailsOpen = ref(false);
 const selectedBooking = ref<Booking | null>(null);
@@ -28,6 +30,10 @@ const isPetsOpen = ref(false);
 const isSettingsOpen = ref(false);
 
 const updaterStore = useUpdaterStore();
+
+const showExitPrompt = ref(false);
+let exitPromptTimeout: any = null;
+let lastBackPressTime = 0;
 
 function handleGoToday() {
   if (activeTab.value !== 'calendar') {
@@ -68,9 +74,95 @@ function handleOpenCreatePet() {
   isPetsOpen.value = true;
 }
 
-onMounted(() => {
+// Android Hardware Back button & Desktop Escape key handler
+function handleHardwareBack() {
+  // 1. UpdateModal
+  if (updaterStore.isModalOpen) {
+    updaterStore.closeModal();
+    return;
+  }
+
+  // 2. BookingDetailsModal
+  if (isDetailsOpen.value) {
+    isDetailsOpen.value = false;
+    return;
+  }
+
+  // 3. BookingCreateModal
+  if (isCreateOpen.value) {
+    isCreateOpen.value = false;
+    return;
+  }
+
+  // 4. PetModal (check if sub-screen is open first)
+  if (isPetsOpen.value) {
+    if (petModalRef.value?.handleBack()) {
+      return;
+    }
+    isPetsOpen.value = false;
+    return;
+  }
+
+  // 5. SettingsModal
+  if (isSettingsOpen.value) {
+    isSettingsOpen.value = false;
+    return;
+  }
+
+  // 6. Calendar internal actions (close day tooltip or clear date selection range)
+  if (activeTab.value === 'calendar' && calendarRef.value?.handleBack()) {
+    return;
+  }
+
+  // 7. Non-calendar tab ('history' or 'pets') -> navigate back to 'calendar'
+  if (activeTab.value !== 'calendar') {
+    activeTab.value = 'calendar';
+    return;
+  }
+
+  // 8. Root level (on 'calendar' tab with no modals or selection):
+  // Double-tap back within 2 seconds to gracefully exit
+  const now = Date.now();
+  if (now - lastBackPressTime < 2000) {
+    CapApp.exitApp();
+  } else {
+    lastBackPressTime = now;
+    showExitPrompt.value = true;
+    clearTimeout(exitPromptTimeout);
+    exitPromptTimeout = setTimeout(() => {
+      showExitPrompt.value = false;
+    }, 2000);
+  }
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    handleHardwareBack();
+  }
+}
+
+let backListener: { remove: () => void } | null = null;
+
+onMounted(async () => {
   // Silent check for updates in background
   updaterStore.checkForUpdates(false);
+
+  // Android hardware back button listener via Capacitor App plugin
+  try {
+    backListener = await CapApp.addListener('backButton', () => {
+      handleHardwareBack();
+    });
+  } catch (err) {
+    console.warn('Capacitor backButton not available in current environment', err);
+  }
+
+  window.addEventListener('keydown', onKeydown);
+});
+
+onUnmounted(() => {
+  backListener?.remove();
+  window.removeEventListener('keydown', onKeydown);
+  clearTimeout(exitPromptTimeout);
 });
 </script>
 
@@ -138,6 +230,7 @@ onMounted(() => {
     />
 
     <PetModal
+      ref="petModalRef"
       :is-open="isPetsOpen"
       @close="isPetsOpen = false"
     />
@@ -148,5 +241,23 @@ onMounted(() => {
     />
 
     <UpdateModal />
+
+    <!-- Exit App Confirmation Toast (shown on 1st back press at root screen) -->
+    <transition
+      enter-active-class="transition duration-200 ease-out transform"
+      enter-from-class="opacity-0 translate-y-4"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-150 ease-in transform"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 translate-y-4"
+    >
+      <div
+        v-if="showExitPrompt"
+        class="fixed bottom-24 inset-x-0 mx-auto w-fit z-50 px-4 py-2 bg-slate-900/90 text-white text-xs font-bold rounded-full shadow-cute-lg backdrop-blur-md flex items-center gap-2 pointer-events-none"
+      >
+        <span>🐾</span>
+        <span>Нажмите «Назад» ещё раз для выхода</span>
+      </div>
+    </transition>
   </div>
 </template>

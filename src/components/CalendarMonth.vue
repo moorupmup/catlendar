@@ -305,8 +305,21 @@ onMounted(() => {
   }, 100);
 });
 
+function handleBack(): boolean {
+  if (activeTooltip.value) {
+    activeTooltip.value = null;
+    return true;
+  }
+  if (bookingsStore.selectionStart) {
+    bookingsStore.clearSelection();
+    return true;
+  }
+  return false;
+}
+
 defineExpose({
   scrollToToday,
+  handleBack,
 });
 </script>
 

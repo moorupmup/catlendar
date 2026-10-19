@@ -211,7 +211,7 @@ function handleImport() {
         </div>
 
         <!-- Bottom Bar -->
-        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-between">
+        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-between pb-[max(1rem,env(safe-area-inset-bottom,16px))]">
           <span class="text-[11px] text-cat-700 font-bold flex items-center gap-1">
             <span>Сделано с любовью</span>
             <Heart class="w-3 h-3 text-cat-500 fill-cat-500" />

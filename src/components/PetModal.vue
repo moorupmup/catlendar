@@ -106,6 +106,18 @@ function removePet(pet: Pet) {
     petsStore.deletePet(pet.id);
   }
 }
+
+function handleBack(): boolean {
+  if (isCreating.value) {
+    isCreating.value = false;
+    return true;
+  }
+  return false;
+}
+
+defineExpose({
+  handleBack,
+});
 </script>
 
 <template>
@@ -256,7 +268,7 @@ function removePet(pet: Pet) {
             </button>
           </div>
 
-          <div class="flex justify-end gap-2 pt-2">
+          <div class="flex justify-end gap-2 pt-2 pb-[max(1rem,env(safe-area-inset-bottom,16px))]">
             <button
               @click="isCreating = false"
               class="px-4 py-2 rounded-xl bg-white border border-cat-200 text-xs font-bold text-slate-600"
@@ -352,7 +364,7 @@ function removePet(pet: Pet) {
         </div>
 
         <!-- Bottom Bar -->
-        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-end">
+        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-end pb-[max(1rem,env(safe-area-inset-bottom,16px))]">
           <button
             @click="emit('close')"
             class="px-4 py-2 rounded-lg bg-white border border-cat-200 text-slate-700 text-xs font-bold shadow-xs hover:bg-cat-50 active:scale-95 transition-all"

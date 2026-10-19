@@ -442,7 +442,7 @@ function handleSave() {
         </div>
 
         <!-- Bottom Actions -->
-        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-end gap-2">
+        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-end gap-2 pb-[max(1rem,env(safe-area-inset-bottom,16px))]">
           <button
             type="button"
             @click="emit('close')"

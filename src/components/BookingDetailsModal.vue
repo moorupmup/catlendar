@@ -146,7 +146,7 @@ function cleanWhatsapp(phone?: string): string {
         </div>
 
         <!-- Scrollable Content -->
-        <div class="p-5 overflow-y-auto space-y-4">
+        <div class="p-5 overflow-y-auto space-y-4 pb-[max(2rem,env(safe-area-inset-bottom,24px))]">
           <!-- Pet Profile Header Card -->
           <div
             class="p-3.5 rounded-xl border flex items-center gap-3 relative overflow-hidden"
@@ -323,16 +323,6 @@ function cleanWhatsapp(phone?: string): string {
             <span class="font-bold block mb-1">🐾 Памятка по передержке:</span>
             {{ booking.notes }}
           </div>
-        </div>
-
-        <!-- Bottom Bar -->
-        <div class="p-4 border-t border-cat-100 bg-cat-50/50 flex items-center justify-end">
-          <button
-            @click="emit('close')"
-            class="px-4 py-2 rounded-lg bg-white border border-cat-200 text-slate-700 text-xs font-bold shadow-xs hover:bg-cat-50 active:scale-95 transition-all"
-          >
-            Закрыть
-          </button>
         </div>
       </div>
     </div>
