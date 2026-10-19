@@ -1,0 +1,120 @@
+name: Build and Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag version for the release (e.g., v1.0.1)'
+        required: false
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Signed Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🐾 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install npm dependencies
+        run: npm install
+
+      - name: ⚡ Build Vite Web Assets
+        run: npm run build
+
+      - name: 📱 Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: ☕ Setup Java Development Kit (Temurin 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: 'gradle'
+
+      - name: 🔑 Configure Static Keystore
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "🐾 Decoding custom keystore from GitHub Secret..."
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
+          else
+            echo "🐾 Using static repository release.keystore..."
+          fi
+          ls -la android/app/release.keystore
+
+      - name: 🛠️ Make gradlew executable
+        run: chmod +x ./android/gradlew
+
+      - name: 🚀 Build Release APK with Gradle
+        env:
+          KEYSTORE_PATH: release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'catlendar_release_key_2026' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'catlendar' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'catlendar_release_key_2026' }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --stacktrace
+
+      - name: 🏷️ Determine Version Tag
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.release_tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          
+          # Copy and rename APK with version tag
+          APK_SRC="android/app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$APK_SRC" ]; then
+            # In case unsigned variant was built
+            APK_SRC="android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          fi
+          APK_DEST="Catlendar-${TAG}.apk"
+          cp "$APK_SRC" "$APK_DEST"
+          echo "APK_DEST=$APK_DEST" >> $GITHUB_OUTPUT
+          echo "✅ Built: $APK_DEST"
+
+      - name: 📤 Upload APK Artifact to Action Run
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.APK_DEST }}
+          path: ${{ steps.vars.outputs.APK_DEST }}
+          retention-days: 30
+
+      - name: 🌟 Create or Update GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.TAG }}
+          name: Catlendar ${{ steps.vars.outputs.TAG }}
+          body: |
+            🐾 **Catlendar ${{ steps.vars.outputs.TAG }}**
+            
+            Обновление приложения для передержки домашних животных.
+            
+            ### 📥 Установка:
+            - Скачайте прикрепленный файл `${{ steps.vars.outputs.APK_DEST }}`
+            - Откройте файл на Android устройстве для установки или обновления
+            - Либо обновитесь прямо из приложения по кнопке проверки обновлений!
+          files: ${{ steps.vars.outputs.APK_DEST }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

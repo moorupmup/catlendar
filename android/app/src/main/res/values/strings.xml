@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Catlendar</string>
+    <string name="title_activity_main">Catlendar</string>
+    <string name="package_name">com.catlendar.app</string>
+    <string name="custom_url_scheme">com.catlendar.app</string>
+</resources>
