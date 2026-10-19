@@ -1,54 +1,104 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <!-- Soft Glow / Background -->
-  <circle cx="50" cy="50" r="46" fill="#FFE6EC" />
-  <circle cx="50" cy="50" r="42" fill="#FFF0F5" stroke="#FFCCD8" stroke-width="2" />
-  
-  <!-- Left Ear -->
-  <path d="M26 40 L18 20 C24 18 36 24 38 31 Z" fill="#FF7096" />
-  <path d="M26 36 L21 24 C25 23 32 27 34 31 Z" fill="#FFE6EC" />
-  
-  <!-- Right Ear -->
-  <path d="M74 40 L82 20 C76 18 64 24 62 31 Z" fill="#FF7096" />
-  <path d="M74 36 L79 24 C75 23 68 27 66 31 Z" fill="#FFE6EC" />
-  
-  <!-- Cat Head -->
-  <ellipse cx="50" cy="50" rx="32" ry="28" fill="#FFFFFF" stroke="#FFCCD8" stroke-width="2" />
+  <defs>
+    <!-- Vibrant pastel rose-coral gradient for calendar header & ears -->
+    <linearGradient id="catHeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5C8A" />
+      <stop offset="100%" stop-color="#FF386B" />
+    </linearGradient>
 
-  <!-- Calendar Hairpin/Badge on Head -->
-  <rect x="42" y="24" width="16" height="13" rx="3" fill="#FF477E" />
-  <rect x="44" y="29" width="12" height="7" rx="1.5" fill="#FFFFFF" />
-  <circle cx="46" cy="23" r="1.5" fill="#FFE6EC" />
-  <circle cx="54" cy="23" r="1.5" fill="#FFE6EC" />
-  <!-- Tiny heart on calendar -->
-  <path d="M50 33 C49 31.5 47 31.5 47 33 C47 34.5 50 36 50 36 C50 36 53 34.5 53 33 C53 31.5 51 31.5 50 33 Z" fill="#FF477E" />
+    <!-- Soft ambient shadow -->
+    <filter id="softShadow" x="-15%" y="-10%" width="130%" height="130%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="3.5" flood-color="#FF3366" flood-opacity="0.15" />
+    </filter>
+  </defs>
 
-  <!-- Blush Cheeks -->
-  <circle cx="32" cy="54" r="5" fill="#FFB5C5" opacity="0.6" />
-  <circle cx="68" cy="54" r="5" fill="#FFB5C5" opacity="0.6" />
+  <g filter="url(#softShadow)">
+    <!-- White Calendar Page Body -->
+    <rect
+      x="14"
+      y="24"
+      width="72"
+      height="66"
+      rx="18"
+      fill="#FFFFFF"
+      stroke="#FFCCD8"
+      stroke-width="2"
+    />
 
-  <!-- Cat Eyes (Happy curved eyes ^_^) -->
-  <path d="M34 46 Q40 41 44 46" stroke="#4A3E4D" stroke-width="2.5" stroke-linecap="round" fill="none" />
-  <path d="M56 46 Q60 41 66 46" stroke="#4A3E4D" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <!-- Calendar Top Bar with Integrated Cat Ears -->
+    <path
+      d="
+        M 14 42
+        L 14 32
+        C 14 24, 18 20, 24 20
+        L 25 20
+        C 23 13, 27 6, 33 6
+        C 39 6, 42 14, 44 20
+        L 56 20
+        C 58 14, 61 6, 67 6
+        C 73 6, 77 13, 76 20
+        L 76 20
+        C 82 20, 86 24, 86 32
+        L 86 42
+        Z
+      "
+      fill="url(#catHeaderGrad)"
+    />
+  </g>
 
-  <!-- Nose (Tiny heart) -->
-  <path d="M50 51 C49.2 49.8 47.5 49.8 47.5 51 C47.5 52.2 50 53.5 50 53.5 C50 53.5 52.5 52.2 52.5 51 C52.5 49.8 50.8 49.8 50 51 Z" fill="#FF477E" />
+  <!-- Inner Ears (Soft pastel pink) -->
+  <path
+    d="M 28 19 C 27 15, 29 11, 33 11 C 37 11, 39 15, 38 19 Z"
+    fill="#FFE6EC"
+  />
+  <path
+    d="M 72 19 C 73 15, 71 11, 67 11 C 63 11, 61 15, 62 19 Z"
+    fill="#FFE6EC"
+  />
 
-  <!-- Mouth -->
-  <path d="M50 53.5 C48.5 56 46 56 44.5 54.5" stroke="#4A3E4D" stroke-width="2" stroke-linecap="round" fill="none" />
-  <path d="M50 53.5 C51.5 56 54 56 55.5 54.5" stroke="#4A3E4D" stroke-width="2" stroke-linecap="round" fill="none" />
+  <!-- Clean White Heart in Calendar Header -->
+  <path
+    d="
+      M 50 33
+      C 47.5 29.5, 43 29.5, 43 33.5
+      C 43 37, 50 41, 50 41
+      C 50 41, 57 37, 57 33.5
+      C 57 29.5, 52.5 29.5, 50 33
+      Z
+    "
+    fill="#FFFFFF"
+  />
 
-  <!-- Whiskers Left -->
-  <line x1="22" y1="49" x2="31" y2="51" stroke="#FF9EBA" stroke-width="1.8" stroke-linecap="round" />
-  <line x1="21" y1="54" x2="30" y2="54" stroke="#FF9EBA" stroke-width="1.8" stroke-linecap="round" />
-  
-  <!-- Whiskers Right -->
-  <line x1="78" y1="49" x2="69" y2="51" stroke="#FF9EBA" stroke-width="1.8" stroke-linecap="round" />
-  <line x1="79" y1="54" x2="70" y2="54" stroke="#FF9EBA" stroke-width="1.8" stroke-linecap="round" />
+  <!-- Minimalist Cat Face on Calendar Page -->
+  <!-- Happy curved smiling eyes -->
+  <path
+    d="M 31 60 Q 38 53 45 60"
+    stroke="#3D2833"
+    stroke-width="3.5"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <path
+    d="M 55 60 Q 62 53 69 60"
+    stroke="#3D2833"
+    stroke-width="3.5"
+    stroke-linecap="round"
+    fill="none"
+  />
 
-  <!-- Little Paw at Bottom -->
-  <circle cx="50" cy="74" r="6" fill="#FFFFFF" stroke="#FFCCD8" stroke-width="1.5" />
-  <circle cx="47" cy="70" r="1.5" fill="#FF7096" />
-  <circle cx="50" cy="69" r="1.5" fill="#FF7096" />
-  <circle cx="53" cy="70" r="1.5" fill="#FF7096" />
-  <ellipse cx="50" cy="74" rx="3" ry="2" fill="#FF7096" />
+  <!-- Rosy Blush Cheeks -->
+  <circle cx="26" cy="67" r="4.5" fill="#FFAEC5" opacity="0.6" />
+  <circle cx="74" cy="67" r="4.5" fill="#FFAEC5" opacity="0.6" />
+
+  <!-- Tiny Pink Nose -->
+  <circle cx="50" cy="66" r="2.2" fill="#FF477E" />
+
+  <!-- Sweet Cat Smile -->
+  <path
+    d="M 46 69.5 Q 48 72 50 70.8 Q 52 72 54 69.5"
+    stroke="#3D2833"
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
 </svg>

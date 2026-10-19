@@ -93,9 +93,11 @@ function handleImport() {
           <div class="bg-white p-4 rounded-xl border border-cat-100 shadow-cute space-y-3.5">
             <!-- App Identity: Logo, Title, Version -->
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-cat-400 to-cat-200 p-0.5 shadow-xs flex items-center justify-center">
-                <img src="/logo.svg" alt="Catlendar Logo" class="w-10 h-10 rounded-lg object-contain" />
-              </div>
+              <img
+                src="/logo.svg"
+                alt="Catlendar Logo"
+                class="w-12 h-12 object-contain select-none"
+              />
               <div>
                 <h3 class="text-base font-extrabold text-slate-800 tracking-tight">
                   Catlendar

@@ -21,9 +21,11 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     <div class="flex items-center justify-between gap-2 max-w-lg mx-auto">
       <!-- App Brand: Clean logo + name -->
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cat-400 to-cat-200 p-0.5 shadow-cute transition-transform active:scale-95 flex items-center justify-center">
-          <img src="/logo.svg" alt="Catlendar Logo" class="w-7 h-7 rounded-lg object-contain drop-shadow" />
-        </div>
+        <img
+          src="/logo.svg"
+          alt="Catlendar Logo"
+          class="w-8 h-8 object-contain transition-transform active:scale-95 select-none"
+        />
         <h1 class="text-xl font-black tracking-tight bg-gradient-to-r from-cat-600 via-cat-500 to-cat-400 bg-clip-text text-transparent">
           Catlendar
         </h1>
