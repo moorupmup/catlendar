@@ -240,10 +240,7 @@ function getBalance(booking: Booking): number {
             v-for="item in filteredEvents"
             :key="item.id"
             @click="emit('select-booking', item.booking)"
-            class="relative z-10 flex items-start gap-3 group cursor-pointer transition-opacity"
-            :class="[
-              currentFilter === 'all' && item.isPast ? 'opacity-65 hover:opacity-95' : '',
-            ]"
+            class="relative z-10 flex items-start gap-3 group cursor-pointer"
           >
             <!-- Left Date Cube & Icon Column -->
             <div class="shrink-0 flex flex-col items-center w-12">
