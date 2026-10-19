@@ -117,7 +117,7 @@ function cleanWhatsapp(phone?: string): string {
         <div class="px-5 pt-4 pb-3 border-b border-cat-100 flex items-center justify-between bg-gradient-to-r from-cat-50 via-white to-cat-50">
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-cat-600 bg-cat-100 px-2 py-0.5 rounded-md border border-cat-200">
-              🐾 Детали передержки
+              Детали передержки
             </span>
           </div>
 

@@ -195,7 +195,7 @@ function handleSave() {
         <div class="px-5 pt-4 pb-3 border-b border-cat-100 flex items-center justify-between bg-gradient-to-r from-cat-50 via-white to-cat-50">
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-cat-700 bg-cat-100 px-2 py-0.5 rounded-md border border-cat-200">
-              {{ editingBooking ? '✏️ Редактирование брони' : '🐾 Новая передержка' }}
+              {{ editingBooking ? 'Редактирование брони' : 'Новая передержка' }}
             </span>
           </div>
 
@@ -227,7 +227,7 @@ function handleSave() {
                 class="text-xs font-bold text-cat-600 hover:text-cat-700 flex items-center gap-1 active:scale-95 transition-all"
               >
                 <Plus class="w-3.5 h-3.5" />
-                <span>+ Добавить нового</span>
+                <span>Добавить нового</span>
               </button>
             </div>
 
