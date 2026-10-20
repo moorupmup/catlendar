@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useUpdaterStore } from '../stores/updater';
 import { useBookingsStore } from '../stores/bookings';
-import { X, Settings, Download, Upload, RefreshCw, Sparkles, CheckCircle, Heart, AlertCircle } from 'lucide-vue-next';
+import {
+  X,
+  Settings,
+  Download,
+  Upload,
+  RefreshCw,
+  Sparkles,
+  CheckCircle,
+  Heart,
+  AlertCircle,
+  LayoutGrid,
+  Moon,
+} from 'lucide-vue-next';
+import { getWidgetTheme, setWidgetTheme, type WidgetTheme } from '../services/widgetBridge';
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean;
 }>();
 
@@ -19,6 +32,23 @@ const importText = ref('');
 const showImportArea = ref(false);
 const importMessage = ref<string | null>(null);
 const checkedRecently = ref(false);
+
+const selectedWidgetTheme = ref<WidgetTheme>('classic');
+
+watch(
+  () => props.isOpen,
+  async (open) => {
+    if (open) {
+      selectedWidgetTheme.value = await getWidgetTheme();
+    }
+  },
+  { immediate: true }
+);
+
+async function handleThemeChange(theme: WidgetTheme) {
+  selectedWidgetTheme.value = theme;
+  await setWidgetTheme(theme);
+}
 
 async function handleCheckUpdates() {
   checkedRecently.value = false;
@@ -164,7 +194,91 @@ function handleImport() {
             </div>
           </div>
 
-          <!-- Section 2: Backup & Restore (JSON) -->
+          <!-- Section: Home Screen Widget Customization -->
+          <div class="bg-white p-4 rounded-xl border border-cat-100 shadow-cute space-y-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-cat-100 flex items-center justify-center text-cat-600">
+                <LayoutGrid class="w-4 h-4" />
+              </div>
+              <div>
+                <h4 class="text-xs font-black text-slate-800">
+                  Виджет на рабочий стол
+                </h4>
+                <p class="text-[11px] text-slate-500 font-medium">
+                  Стиль оформления и эффекты стекла
+                </p>
+              </div>
+            </div>
+
+            <!-- Theme Choices (3 Cards) -->
+            <div class="grid grid-cols-3 gap-2 pt-1">
+              <!-- 1. Classic Light -->
+              <button
+                type="button"
+                @click="handleThemeChange('classic')"
+                class="p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition-all text-center relative active:scale-95 touch-manipulation"
+                :class="selectedWidgetTheme === 'classic'
+                  ? 'border-cat-500 bg-cat-50/70 shadow-xs ring-2 ring-cat-300'
+                  : 'border-slate-200 bg-white hover:border-cat-200'"
+              >
+                <!-- Mini Preview Box -->
+                <div class="w-full h-8 rounded-lg bg-white border border-cat-200 flex items-center justify-center shadow-2xs gap-1">
+                  <span class="w-2.5 h-2.5 rounded-full bg-cat-400"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-300"></span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Светлый</span>
+                <span class="text-[9px] text-slate-400">Классика</span>
+              </button>
+
+              <!-- 2. Glass Light -->
+              <button
+                type="button"
+                @click="handleThemeChange('glass_light')"
+                class="p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition-all text-center relative active:scale-95 touch-manipulation"
+                :class="selectedWidgetTheme === 'glass_light'
+                  ? 'border-cat-500 bg-cat-50/70 shadow-xs ring-2 ring-cat-300'
+                  : 'border-slate-200 bg-white hover:border-cat-200'"
+              >
+                <!-- Mini Preview Box -->
+                <div class="w-full h-8 rounded-lg bg-gradient-to-br from-rose-100/90 via-white/80 to-sky-100/90 border border-white/80 flex items-center justify-center shadow-2xs">
+                  <Sparkles class="w-3.5 h-3.5 text-cat-500" />
+                </div>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Светлое</span>
+                <span class="text-[9px] text-cat-600 font-semibold">Стекло</span>
+              </button>
+
+              <!-- 3. Glass Dark -->
+              <button
+                type="button"
+                @click="handleThemeChange('glass_dark')"
+                class="p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition-all text-center relative active:scale-95 touch-manipulation"
+                :class="selectedWidgetTheme === 'glass_dark'
+                  ? 'border-cat-500 bg-cat-50/70 shadow-xs ring-2 ring-cat-300'
+                  : 'border-slate-200 bg-white hover:border-cat-200'"
+              >
+                <!-- Mini Preview Box -->
+                <div class="w-full h-8 rounded-lg bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-white/20 flex items-center justify-center shadow-2xs">
+                  <Moon class="w-3.5 h-3.5 text-cat-300" />
+                </div>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Тёмное</span>
+                <span class="text-[9px] text-indigo-500 font-semibold">Стекло</span>
+              </button>
+            </div>
+
+            <!-- Helpful Widget Tips -->
+            <div class="text-[11px] text-slate-500 bg-cat-50/40 p-2.5 rounded-lg border border-cat-100 space-y-1">
+              <p class="flex items-start gap-1">
+                <span class="text-cat-500">✨</span>
+                <span>Виджет можно свободно сжимать на рабочем столе от <b>2×2</b> до полного экрана.</span>
+              </p>
+              <p class="flex items-start gap-1">
+                <span class="text-cat-500">🔄</span>
+                <span>Тему можно переключать прямо на самом виджете по кнопке в верхнем правом углу.</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Section: Backup & Restore (JSON) -->
           <div class="bg-white p-3.5 rounded-xl border border-cat-100 shadow-cute space-y-3">
             <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider">
               Резервная копия данных

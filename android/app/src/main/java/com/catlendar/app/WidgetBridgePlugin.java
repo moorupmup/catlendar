@@ -3,6 +3,7 @@ package com.catlendar.app;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -25,5 +26,25 @@ public class WidgetBridgePlugin extends Plugin {
             CatlendarWidgetProvider.updateAllWidgets(getContext());
         }
         call.resolve();
+    }
+
+    @PluginMethod
+    public void setWidgetTheme(PluginCall call) {
+        String theme = call.getString("theme");
+        if (theme != null) {
+            SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            prefs.edit().putString(CatlendarWidgetProvider.PREF_THEME, theme).apply();
+            CatlendarWidgetProvider.updateAllWidgets(getContext());
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void getWidgetTheme(PluginCall call) {
+        SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String theme = prefs.getString(CatlendarWidgetProvider.PREF_THEME, CatlendarWidgetProvider.THEME_CLASSIC);
+        JSObject ret = new JSObject();
+        ret.put("theme", theme);
+        call.resolve(ret);
     }
 }
